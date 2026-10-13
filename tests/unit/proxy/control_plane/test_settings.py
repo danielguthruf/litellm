@@ -49,3 +49,8 @@ def test_credentials_at_the_bound_are_accepted() -> None:
         }
     )
     assert settings.ui_username is not None and len(settings.ui_username) == USERNAME_MAX_LENGTH
+
+
+def test_fanout_concurrency_must_be_positive() -> None:
+    with pytest.raises(ValidationError):
+        ControlPlaneSettings.model_validate({"LITELLM_MASTER_KEY": "sk-cp", "fanout_concurrency": 0})
