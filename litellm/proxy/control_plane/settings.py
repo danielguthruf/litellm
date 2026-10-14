@@ -110,6 +110,9 @@ class ControlPlaneSettings(BaseSettings):
     fanout_concurrency: int = Field(default=16, ge=1)
     audit_capacity: int = 10_000
     api_prefix: str = "/api/v1"
+    otel_enabled: bool | None = None
+    otel_service_name: str = "litellm-control-plane"
+    otel_identity_attributes: bool = True
 
     @model_validator(mode="after")
     def _password_login_has_admin_role(self) -> "ControlPlaneSettings":
