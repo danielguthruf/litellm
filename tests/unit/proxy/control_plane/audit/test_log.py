@@ -5,6 +5,7 @@ from typing import Final
 
 import pytest
 
+from litellm.proxy.control_plane.audit.event import redact_path as redact_event_path
 from litellm.proxy.control_plane.audit.log import build_audit_log, redact_path
 
 T0: Final = datetime(2026, 10, 13, 12, 0, tzinfo=UTC)
@@ -62,10 +63,12 @@ def test_recent_with_an_empty_dataplane_set_shows_nothing_and_none_shows_everyth
         "/key/SK-live-123/reset_spend",
         "/key/sk%2Dlive-123/reset_spend",
         "/key/sk%252Dlive-123/reset_spend",
+        "/key/%2573k-live-123/team/secret/reset_spend",
     ],
 )
 def test_encoded_virtual_keys_are_redacted_after_repeated_decoding(path: str) -> None:
     assert redact_path(path) == "/key/sk-[redacted]/reset_spend"
+    assert redact_event_path(path) == "/key/sk-[redacted]/reset_spend"
 
 
 @pytest.mark.parametrize(

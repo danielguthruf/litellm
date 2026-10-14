@@ -2,17 +2,19 @@
 
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Final, TypeAlias
+from typing import Final, Literal, TypeAlias
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, TypeAdapter, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from litellm.litellm_core_utils.oauth_token_exchange import TokenExchangeProfile
+from litellm.proxy.control_plane.audit.event import CONTROL_PLANE_ID
 from litellm.proxy.control_plane.auth.rbac import ADMIN_ROLE
 from litellm.types.proxy.control_plane.auth import PASSWORD_MAX_LENGTH, USERNAME_MAX_LENGTH
 
 DEFAULT_SESSION_TTL_SECONDS: Final = 12 * 60 * 60
+AuditSinkKind: TypeAlias = Literal["log", "otlp"]
 DEFAULT_DATAPLANE_TIMEOUT_SECONDS: Final = 10.0
 
 
@@ -108,11 +110,16 @@ class ControlPlaneSettings(BaseSettings):
     dataplane_timeout_seconds: float = DEFAULT_DATAPLANE_TIMEOUT_SECONDS
     dataplane_retry_attempts: int = 3
     fanout_concurrency: int = Field(default=16, ge=1)
-    audit_capacity: int = 10_000
+    audit_capacity: int = Field(default=10_000, ge=1)
     api_prefix: str = "/api/v1"
     otel_enabled: bool | None = None
     otel_service_name: str = "litellm-control-plane"
     otel_identity_attributes: bool = True
+    audit_sinks: tuple[AuditSinkKind, ...] = ("log",)
+    audit_queue_size: int = Field(default=10_000, ge=1)
+    audit_batch_size: int = Field(default=100, ge=1)
+    audit_drain_seconds: float = Field(default=5.0, gt=0)
+    audit_strict: bool = False
 
     @model_validator(mode="after")
     def _password_login_has_admin_role(self) -> "ControlPlaneSettings":
@@ -124,6 +131,12 @@ class ControlPlaneSettings(BaseSettings):
         ):
             return self
         raise ValueError("password login requires a custom admin role when default roles are disabled.")
+
+    @model_validator(mode="after")
+    def _dataplanes_exclude_control_plane_id(self) -> "ControlPlaneSettings":
+        if CONTROL_PLANE_ID not in self.dataplanes:
+            return self
+        raise ValueError(f"dataplane id {CONTROL_PLANE_ID!r} is reserved.")
 
     @property
     def oidc(self) -> OidcSettings | None:

@@ -3,6 +3,8 @@ from typing import Annotated, Final
 from fastapi import APIRouter, Depends, Security
 from fastapi.responses import JSONResponse
 
+from litellm.proxy.control_plane.audit.dependencies import get_audit_log
+from litellm.proxy.control_plane.audit.log import AuditLog
 from litellm.proxy.control_plane.auth.dependencies import require_scopes
 from litellm.proxy.control_plane.auth.login import InvalidCredentials, LoginService, Throttled
 from litellm.proxy.control_plane.auth.rbac import Principal
@@ -31,19 +33,23 @@ def principal_response(principal: Principal) -> PrincipalResponse:
 async def login(
     body: LoginRequest,
     service: Annotated[LoginService, Depends(get_login_service)],
+    audit: Annotated[AuditLog, Depends(get_audit_log)],
 ) -> JSONResponse:
     match service.login(body.username, body.password):
         case SessionTokenResponse() as token:
+            audit.record_login(body.username, "allowed")
             return JSONResponse(
                 content=token.model_dump(mode="json"),
                 headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
             )
         case Throttled(retry_after_seconds=seconds):
+            audit.record_login(body.username, "denied", detail="throttled")
             raise ControlPlaneException(
                 too_many_requests(f"Too many failed logins, retry in {seconds} seconds."),
                 headers={"Retry-After": str(seconds)},
             )
         case InvalidCredentials():
+            audit.record_login(body.username, "denied", detail="invalid credentials")
             raise ControlPlaneException(unauthorized("Invalid username or password."))
 
 

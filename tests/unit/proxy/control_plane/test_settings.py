@@ -3,6 +3,7 @@ from typing import Final
 import pytest
 from pydantic import ValidationError
 
+from litellm.proxy.control_plane.audit.event import CONTROL_PLANE_ID
 from litellm.proxy.control_plane.settings import ControlPlaneSettings
 from litellm.types.proxy.control_plane.auth import PASSWORD_MAX_LENGTH, USERNAME_MAX_LENGTH
 
@@ -54,3 +55,27 @@ def test_credentials_at_the_bound_are_accepted() -> None:
 def test_fanout_concurrency_must_be_positive() -> None:
     with pytest.raises(ValidationError):
         ControlPlaneSettings.model_validate({"LITELLM_MASTER_KEY": "sk-cp", "fanout_concurrency": 0})
+
+
+def test_dataplane_id_cannot_be_reserved_for_the_control_plane() -> None:
+    with pytest.raises(ValidationError, match="dataplane id 'control-plane' is reserved"):
+        ControlPlaneSettings.model_validate(
+            {
+                "LITELLM_MASTER_KEY": "sk-cp",
+                "dataplanes": {CONTROL_PLANE_ID: {"url": "https://control.test"}},
+            }
+        )
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("audit_capacity", 0),
+        ("audit_queue_size", 0),
+        ("audit_batch_size", 0),
+        ("audit_drain_seconds", 0),
+    ],
+)
+def test_audit_capacity_and_delivery_limits_must_be_positive(field: str, value: int) -> None:
+    with pytest.raises(ValidationError):
+        ControlPlaneSettings.model_validate({"LITELLM_MASTER_KEY": "sk-cp", field: value})
