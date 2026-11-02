@@ -104,6 +104,17 @@ def as_str_mapping(value: object) -> Mapping[str, object] | None:
     return value if isinstance(value, Mapping) else None
 
 
+_Key = TypeVar("_Key")
+_Value = TypeVar("_Value")
+
+
+def without(
+    mapping: Mapping[_Key, _Value], *keys: object
+) -> dict[_Key, _Value]:  # mutable-ok: a fresh copy the caller owns
+    """``mapping`` without ``keys``, as a new dict in the same order; ``mapping`` is unchanged."""
+    return {key: value for key, value in mapping.items() if key not in keys}
+
+
 def decoded_json_object(value: object) -> Mapping[str, object]:
     mapping: Final = as_str_mapping(value)
     if mapping is not None:
