@@ -89,10 +89,26 @@ def _anthropic_invoke_body(
     invoke_body: Final = _BODY_BY_REFERENCE.validate_python(body)
     if not isinstance(invoke_body.get("anthropic_version"), str) or not isinstance(invoke_body.get("messages"), list):
         return None
-    blocks: Final = _anthropic_message_blocks(_ARRAY_BY_REFERENCE.validate_python(invoke_body["messages"]))
+    messages: Final = _ARRAY_BY_REFERENCE.validate_python(invoke_body["messages"])
+    if not all(_is_well_formed_message(message) for message in messages):
+        return None
+    blocks: Final = _anthropic_message_blocks(messages)
     if any(block.get("type") in _BLOCK_TYPES_THE_ANTHROPIC_HANDLER_DOES_NOT_SCAN for block in blocks):
         return None
     return invoke_body
+
+
+def _is_well_formed_message(message: object) -> bool:
+    """Whether the Messages translation can read `message`, so a malformed body still reaches Bedrock to be rejected there"""
+    fields: Final = as_str_mapping(message)
+    if fields is None or not isinstance(fields.get("role"), str):
+        return False
+    content: Final = fields.get("content")
+    if isinstance(content, str):
+        return True
+    return isinstance(content, list) and all(
+        as_str_mapping(block) is not None for block in _ARRAY_BY_REFERENCE.validate_python(content)
+    )
 
 
 def _anthropic_message_blocks(messages: Sequence[object]) -> tuple[Mapping[str, object], ...]:
@@ -101,17 +117,20 @@ def _anthropic_message_blocks(messages: Sequence[object]) -> tuple[Mapping[str, 
 
 
 def _anthropic_content_blocks(content: object) -> tuple[Mapping[str, object], ...]:
-    if not isinstance(content, list):
-        return ()
-    blocks: Final = tuple(
-        block
-        for block in (as_str_mapping(item) for item in _ARRAY_BY_REFERENCE.validate_python(content))
-        if block is not None
-    )
-    nested: Final = (
-        _anthropic_content_blocks(block.get("content")) for block in blocks if block.get("type") == "tool_result"
-    )
-    return (*blocks, *chain.from_iterable(nested))
+    blocks: Final[list[Mapping[str, object]]] = []  # mutable-ok: collected while walking the content
+    pending: Final[list[object]] = [content]  # mutable-ok: content lists still to walk, nested tool results included
+    while pending:
+        current = pending.pop()
+        if not isinstance(current, list):
+            continue
+        for item in _ARRAY_BY_REFERENCE.validate_python(current):
+            block = as_str_mapping(item)
+            if block is None:
+                continue
+            blocks.append(block)
+            if block.get("type") == "tool_result":
+                pending.append(block.get("content"))
+    return tuple(blocks)
 
 
 def _anthropic_invoke_reply(
@@ -1345,6 +1364,7 @@ class BedrockPassthroughGuardrailHandler(BaseTranslation):
                     guardrail_to_apply=guardrail_to_apply,
                     litellm_logging_obj=litellm_logging_obj,
                     request_data=passthrough_request,
+                    keep_cache_control=True,
                 )
                 return passthrough_request
             return await _generic_passthrough_handler().process_input_messages(
