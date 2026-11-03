@@ -643,35 +643,77 @@ class ProxyExtrasDBManager:
                     logger.warning(f"Failed to resolve migration {migration_name}: {e.stderr}")
 
     @staticmethod
-    def raise_if_lens_rename_pending(connect: LensCheckConnect | None = None) -> None:
+    def _push_check_finds_unsafe_data(
+        purpose: str,
+        connect: LensCheckConnect | None,
+        query: "Callable[[psycopg.Connection[tuple[object, ...]], str], bool]",
+    ) -> bool:
         database_url: Final = os.environ.get("DATABASE_URL")
         if not database_url:
-            return
+            return False
         try:
             import psycopg
         except ImportError as exc:
-            raise RuntimeError("Install psycopg to verify Lens data safety before prisma db push.") from exc
+            raise RuntimeError(f"Install psycopg to verify {purpose} before prisma db push.") from exc
         open_connection: Final = connect if connect is not None else psycopg.connect
         try:
             with open_connection(
                 ProxyExtrasDBManager._strip_prisma_query_params(database_url), connect_timeout=10, autocommit=True
             ) as connection:
-                legacy: Final = connection.execute(
+                return query(connection, ProxyExtrasDBManager._prisma_schema_param(database_url) or "public")
+        except psycopg.Error as exc:
+            raise RuntimeError(
+                f"Cannot verify {purpose}; refusing prisma db push. "
+                f"The database check failed: {_redact_credentials(str(exc)).strip()}"
+            ) from exc
+
+    @staticmethod
+    def raise_if_lens_rename_pending(connect: LensCheckConnect | None = None) -> None:
+        def legacy_tables_exist(connection: "psycopg.Connection[tuple[object, ...]]", schema: str) -> bool:
+            return (
+                connection.execute(
                     "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace "
                     "WHERE n.nspname=%s AND c.relname IN ('LiteLLM_Engine', 'LiteLLM_EngineRun', 'LiteLLM_EngineWorker') "
                     "LIMIT 1",
-                    (ProxyExtrasDBManager._prisma_schema_param(database_url) or "public",),
+                    (schema,),
                 ).fetchone()
-        except psycopg.Error as exc:
-            raise RuntimeError(
-                "Cannot verify Lens data safety; refusing prisma db push. "
-                f"The database check failed: {_redact_credentials(str(exc)).strip()}"
-            ) from exc
-        if legacy is not None:
+                is not None
+            )
+
+        if ProxyExtrasDBManager._push_check_finds_unsafe_data("Lens data safety", connect, legacy_tables_exist):
             raise RuntimeError(
                 "Legacy Lens tables exist. prisma db push would drop saved Lens data. "
                 "Apply the shipped 20261001100000_rename_lens migration to this database schema before retrying. "
                 "Deployments using migration history can upgrade without --use_prisma_db_push instead."
+            )
+
+    @staticmethod
+    def raise_if_accounting_deliveries_unsettled(connect: LensCheckConnect | None = None) -> None:
+        def unsettled_deliveries_exist(connection: "psycopg.Connection[tuple[object, ...]]", schema: str) -> bool:
+            from psycopg import sql
+
+            table_exists: Final = connection.execute(
+                "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace "
+                "WHERE n.nspname=%s AND c.relname='LiteLLM_AccountingDelivery'",
+                (schema,),
+            ).fetchone()
+            return (
+                table_exists is not None
+                and connection.execute(
+                    sql.SQL("SELECT 1 FROM {} WHERE state::text <> 'applied' LIMIT 1").format(
+                        sql.Identifier(schema, "LiteLLM_AccountingDelivery")
+                    )
+                ).fetchone()
+                is not None
+            )
+
+        if ProxyExtrasDBManager._push_check_finds_unsafe_data(
+            "accounting deliveries", connect, unsettled_deliveries_exist
+        ):
+            raise RuntimeError(
+                "LiteLLM_AccountingDelivery has pending or parked rows from the experimental accounting_capture "
+                "setting. prisma db push would drop them. Drain them on the previous build with that setting still on "
+                "before upgrading."
             )
 
     @staticmethod
@@ -1037,6 +1079,7 @@ class ProxyExtrasDBManager:
 
         if not use_migrate:
             ProxyExtrasDBManager.raise_if_lens_rename_pending()
+            ProxyExtrasDBManager.raise_if_accounting_deliveries_unsettled()
             if ProxyExtrasDBManager.spend_logs_is_partitioned():
                 raise RuntimeError(PARTITIONED_SPEND_LOGS_PUSH_ERROR)
             original_dir = os.getcwd()
@@ -1715,6 +1758,7 @@ class ProxyExtrasDBManager:
                         raise RuntimeError(PARTITIONED_SPEND_LOGS_PUSH_ERROR)
                     # Use prisma db push with increased timeout
                     ProxyExtrasDBManager.raise_if_lens_rename_pending()
+                    ProxyExtrasDBManager.raise_if_accounting_deliveries_unsettled()
                     prisma_toolchain.run_prisma(
                         [_get_prisma_command(), "db", "push", "--accept-data-loss"],
                         timeout=prisma_command_timeout(),

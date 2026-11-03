@@ -13,6 +13,8 @@ from pydantic import TypeAdapter
 
 Schema = Mapping[str, Mapping[str, str]]
 MODELS: Final = re.compile(r"^[ \t]*model\s+(\w+)\s*\{(.*?)^[ \t]*\}", re.MULTILINE | re.DOTALL)
+# Scaffolding no release ever wrote (v1.109.0-dev.2 shipped the tables only). The drop migration refuses unsettled rows
+REMOVABLE_MODELS: Final = frozenset({"LiteLLM_AccountingDelivery", "LiteLLM_AccountingEvent"})
 
 
 def parse_model_fields(schema: str) -> Schema:
@@ -36,18 +38,23 @@ def _field_changes(model: str, field: str, old_type: str, new_fields: Mapping[st
         yield f"Breaking: Field {model}.{field} changed type from {old_type} to {new_type}"
 
 
-def _model_changes(model: str, old_fields: Mapping[str, str], new_schema: Schema) -> Iterator[str]:
+def _model_changes(
+    model: str, old_fields: Mapping[str, str], new_schema: Schema, removable_models: frozenset[str]
+) -> Iterator[str]:
     if model not in new_schema:
-        yield f"Breaking: Model {model} was removed"
+        if model not in removable_models:
+            yield f"Breaking: Model {model} was removed"
         return
     for field, old_type in old_fields.items():
         yield from _field_changes(model, field, old_type, new_schema[model])
 
 
-def check_breaking_changes(old_schema: Schema, new_schema: Schema) -> tuple[str, ...]:
+def check_breaking_changes(
+    old_schema: Schema, new_schema: Schema, removable_models: frozenset[str] = REMOVABLE_MODELS
+) -> tuple[str, ...]:
     def changes() -> Iterator[str]:
         for model, fields in old_schema.items():
-            yield from _model_changes(model, fields, new_schema)
+            yield from _model_changes(model, fields, new_schema, removable_models)
 
     return tuple(changes())
 

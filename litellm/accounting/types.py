@@ -74,39 +74,6 @@ class EventKind(str, Enum):
     COST = "cost"
 
 
-class DeliveryState(str, Enum):
-    PENDING = "pending"
-    APPLIED = "applied"
-    PARKED = "parked"
-
-
-class DeliveryTarget(str, Enum):
-    """One member per existing table the projector writes; each is applied and receipted independently."""
-
-    KEY_SPEND = "LiteLLM_VerificationToken"
-    USER_SPEND = "LiteLLM_UserTable"
-    TEAM_SPEND = "LiteLLM_TeamTable"
-    TEAM_MEMBER_SPEND = "LiteLLM_TeamMembership"
-    ORGANIZATION_SPEND = "LiteLLM_OrganizationTable"
-    ORGANIZATION_MEMBER_SPEND = "LiteLLM_OrganizationMembership"
-    END_USER_SPEND = "LiteLLM_EndUserTable"
-    AGENT_SPEND = "LiteLLM_AgentsTable"
-    TAG_SPEND = "LiteLLM_TagTable"
-    PROJECT_SPEND = "LiteLLM_ProjectTable"
-    MODEL_ACCESS_GROUP_SPEND = "LiteLLM_ModelAccessGroupBudgetTable"
-    BUDGET_SPEND = "LiteLLM_BudgetTable"
-    BUDGET_WINDOW_SPEND = "LiteLLM_BudgetWindowSpend"
-    DAILY_USER_SPEND = "LiteLLM_DailyUserSpend"
-    DAILY_TEAM_SPEND = "LiteLLM_DailyTeamSpend"
-    DAILY_ORGANIZATION_SPEND = "LiteLLM_DailyOrganizationSpend"
-    DAILY_END_USER_SPEND = "LiteLLM_DailyEndUserSpend"
-    DAILY_AGENT_SPEND = "LiteLLM_DailyAgentSpend"
-    DAILY_TAG_SPEND = "LiteLLM_DailyTagSpend"
-    DAILY_MODEL_USAGE = "LiteLLM_DailyModelUsage"
-    DAILY_TOOL_SPEND = "LiteLLM_DailyToolSpend"
-    AUTOROUTER_DAILY_SPEND = "LiteLLM_AutoRouterDailySpend"
-
-
 _SUBSET_PAIRS: Final = (
     (MetricName.REASONING_TOKENS, MetricName.COMPLETION_TOKENS),
     (MetricName.CACHE_CREATION_INPUT_TOKENS_ABOVE_1HR, MetricName.CACHE_CREATION_INPUT_TOKENS),

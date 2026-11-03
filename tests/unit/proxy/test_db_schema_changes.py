@@ -40,3 +40,14 @@ def test_schema_compatibility_rejects_removed_models_fields_and_narrowed_types(
     schema: str, expected: tuple[str, ...]
 ) -> None:
     assert check_breaking_changes(parse_model_fields(ORIGINAL), parse_model_fields(schema)) == expected
+
+
+def test_an_allowed_model_may_be_dropped_while_every_other_removal_still_breaks() -> None:
+    previous: Final = parse_model_fields(ORIGINAL + "model Scaffold {\n id String @id\n note String?\n}\n")
+    allowed: Final = frozenset({"Scaffold"})
+
+    assert check_breaking_changes(previous, parse_model_fields(ORIGINAL), allowed) == ()
+    assert check_breaking_changes(previous, parse_model_fields(""), allowed) == ("Breaking: Model Item was removed",)
+    assert check_breaking_changes(
+        previous, parse_model_fields(ORIGINAL + "model Scaffold {\n id String @id\n}\n"), allowed
+    ) == ("Breaking: Field Scaffold.note was removed",)

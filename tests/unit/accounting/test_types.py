@@ -1,9 +1,6 @@
-import re
 from collections.abc import Mapping
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from enum import Enum
-from pathlib import Path
 from typing import Final
 
 import pytest
@@ -14,8 +11,6 @@ from litellm.accounting import (
     AggregateQuery,
     AggregateRow,
     CostEvent,
-    DeliveryState,
-    DeliveryTarget,
     Dimension,
     DimensionFilter,
     DimensionName,
@@ -24,8 +19,8 @@ from litellm.accounting import (
     Metric,
     MetricName,
     Multiplier,
-    Outcome,
     OutboundUsageEvent,
+    Outcome,
     PricedQuantity,
     PricingSnapshot,
     Rate,
@@ -430,29 +425,6 @@ def test_subset_token_counts_round_trip_without_changing_totals() -> None:
     assert OutboundUsageEvent.model_validate_json(event.model_dump_json()).metrics == metrics
 
 
-@pytest.mark.parametrize(
-    "schema_path",
-    [
-        "schema.prisma",
-        "litellm/proxy/schema.prisma",
-        "litellm-proxy-extras/litellm_proxy_extras/schema.prisma",
-    ],
-)
-@pytest.mark.parametrize(
-    ("enum_name", "python_enum"),
-    [
-        ("AccountingDeliveryState", DeliveryState),
-    ],
-)
-def test_prisma_accepts_exactly_the_public_accounting_enum_values(
-    schema_path: str, enum_name: str, python_enum: type[Enum]
-) -> None:
-    schema: Final = (Path(__file__).resolve().parents[3] / schema_path).read_text()
-    declaration: Final = re.search(r"enum " + enum_name + r"\s*\{([^}]+)\}", schema)
-    assert declaration is not None, f"Missing persisted enum {enum_name}"
-    assert frozenset(declaration[1].split()) == frozenset(member.value for member in python_enum)
-
-
 def test_one_event_carries_every_matched_model_access_group():
     groups = (
         Dimension(name=DimensionName.MODEL_ACCESS_GROUP, value="gpt-group"),
@@ -475,7 +447,3 @@ def test_snapshots_reject_duplicate_multipliers_and_contradictory_token_counts()
                 PricedQuantity(measure="reasoning_tokens", unit="token", value=Decimal(6)),
             )
         )
-
-
-def test_agent_live_spend_is_a_delivery_target():
-    assert DeliveryTarget.AGENT_SPEND.value == "LiteLLM_AgentsTable"
