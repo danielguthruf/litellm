@@ -277,7 +277,6 @@ class SpendLogsRepository(PrismaTableRepository["prisma_models.LiteLLM_SpendLogs
         )
         return BatchTakeover(True, "ledger")
 
-
     @staticmethod
     async def _take_over_legacy_batch(transaction: LedgerTransaction, row: Mapping[str, object]) -> BatchTakeover:
         from litellm.proxy.db.db_span import db_span
@@ -289,7 +288,7 @@ class SpendLogsRepository(PrismaTableRepository["prisma_models.LiteLLM_SpendLogs
             return BatchTakeover(False, "legacy")
         inserted: Final = await transaction.query_raw(
             'INSERT INTO "LiteLLM_SpendLogDelivery" (request_id, accounting_payload, is_batch, legacy_takeover) '
-            'VALUES ($1, $2::jsonb, true, true) ON CONFLICT (request_id) DO NOTHING RETURNING request_id',
+            "VALUES ($1, $2::jsonb, true, true) ON CONFLICT (request_id) DO NOTHING RETURNING request_id",
             row["request_id"],
             safe_dumps(payload, non_finite_as_null=True),
         )

@@ -646,6 +646,66 @@ def test_downgrade_command_requires_operator_attestations_and_settled_deliveries
     ]
 
 
+@pytest.mark.parametrize("path,call_type,status,old_spend,new_spend", [
+    ("ledger", "aretrieve_batch", "success", 0.0, 0.5),
+    ("legacy", "aretrieve_batch", "success", 0.5, 1.0),
+    ("legacy", "acompletion", "success", 0.0, 0.5),
+    ("legacy", "aretrieve_batch", "failure", 0.0, 0.5),
+    ("legacy", "aretrieve_batch", "success", 0.0, 0.0),
+])
+@pytest.mark.asyncio
+async def test_legacy_takeover_rejects_rows_that_do_not_own_an_uncharged_batch(
+    delivery_database, delivery_client, path, call_type, status, old_spend, new_spend
+):
+    from types import SimpleNamespace
+
+    from litellm.repositories.table_repositories import SpendLogsRepository
+
+    original = {**_row("occupied", path), "call_type": call_type, "status": status, "spend": old_spend}
+    _insert(delivery_database, (original,))
+    delivery_database.execute('DELETE FROM "LiteLLM_SpendLogDelivery"')
+    repository = SpendLogsRepository(SimpleNamespace(db=delivery_client, writer_db=delivery_client))
+    replacement = _with_payload({**original, "call_type": "aretrieve_batch", "status": "success", "spend": new_spend})
+    assert not (await repository.take_over_batch(replacement)).charged
+    assert delivery_database.execute('SELECT spend FROM "LiteLLM_SpendLogs"').fetchone() == (old_spend,)
+    assert delivery_database.execute('SELECT COUNT(*) FROM "LiteLLM_SpendLogDelivery"').fetchone() == (0,)
+
+
+@pytest.mark.asyncio
+async def test_concurrent_legacy_takeovers_create_one_full_charge(delivery_database, delivery_client):
+    from types import SimpleNamespace
+
+    from litellm.repositories.table_repositories import SpendLogsRepository
+
+    original = {**_row("legacy-race", "legacy"), "call_type": "aretrieve_batch", "status": "success", "spend": 0.0}
+    _insert(delivery_database, (original,))
+    repository = SpendLogsRepository(SimpleNamespace(db=delivery_client, writer_db=delivery_client))
+    replacement = _with_payload({**original, "spend": 0.5})
+    results = await asyncio.gather(repository.take_over_batch(replacement), repository.take_over_batch(replacement))
+    assert sorted(result.charged for result in results) == [False, True]
+    assert delivery_database.execute(
+        'SELECT legacy_takeover, accounting_payload->>\'spend\', previous_payload FROM "LiteLLM_SpendLogDelivery"'
+    ).fetchall() == [(True, "0.5", None)]
+
+
+@pytest.mark.asyncio
+async def test_failed_legacy_takeover_rolls_back_its_delivery(delivery_database, delivery_client):
+    from types import SimpleNamespace
+
+    from prisma.errors import RawQueryError
+
+    from litellm.repositories.table_repositories import SpendLogsRepository
+
+    original = {**_row("legacy-rollback", "legacy"), "call_type": "aretrieve_batch", "status": "success", "spend": 0.0}
+    _insert(delivery_database, (original,))
+    delivery_database.execute('ALTER TABLE "LiteLLM_SpendLogs" ADD CONSTRAINT reject_charge CHECK (spend = 0)')
+    repository = SpendLogsRepository(SimpleNamespace(db=delivery_client, writer_db=delivery_client))
+    with pytest.raises(RawQueryError, match="reject_charge"):
+        await repository.take_over_batch(_with_payload({**original, "spend": 0.5}))
+    assert delivery_database.execute('SELECT spend FROM "LiteLLM_SpendLogs"').fetchone() == (0.0,)
+    assert delivery_database.execute('SELECT COUNT(*) FROM "LiteLLM_SpendLogDelivery"').fetchone() == (0,)
+
+
 @pytest.mark.parametrize("disabled_logs", [False, True])
 @pytest.mark.asyncio
 async def test_buffered_batch_charge_takes_over_its_zero_cost_receipt(

@@ -24,7 +24,11 @@ def _delta(delivery: DeliveryProjection) -> tuple[Contribution, ...]:
             Contribution(
                 item.table, item.key, tuple((column, -value) for column, value in item.increments), item.values
             )
-            for item in (() if delivery.previous_payload is None or delivery.legacy_takeover else project(delivery.previous_payload))
+            for item in (
+                ()
+                if delivery.previous_payload is None or delivery.legacy_takeover
+                else project(delivery.previous_payload)
+            )
         ),
     )
 

@@ -235,7 +235,7 @@ def recorded_legacy_totals(request):
     recorded = json.loads(Path(__file__).with_name("spendlogs_legacy_totals.json").read_text())
     cases = recorded["cases"]
     name = request.node.name
-    if name == "test_flag_changes_do_not_reclassify_or_reapply_buffered_rows":
+    if name == "test_flag_changes_do_not_reclassify_or_reapply_buffered_rows" or name.startswith("test_export_failure_does_not_change_committed_accounting["):
         name = "test_stored_ledger_matches_real_legacy_database_updates[full-success-None-0.25]"
     token = _LEGACY_TOTALS.set(recorded["snapshots"].get(cases.get(name), {}))
     yield

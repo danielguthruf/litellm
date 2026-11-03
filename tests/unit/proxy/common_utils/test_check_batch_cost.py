@@ -3385,8 +3385,17 @@ class TestMultiPodBatchCostClaim:
         spend_prisma: Final = PrismaClient(
             database_url="postgresql://unused:unused@localhost:5432/unused", proxy_logging_obj=dependency
         )
-        insert_spend_rows: Final = AsyncMock(return_value=[{"request_id": "batch-charge"}])
-        spend_prisma.db = PrismaWrapper(original_prisma=MagicMock(query_raw=insert_spend_rows))
+        async def inserted_rows(statement, serialized):
+            return [{"request_id": value["request_id"]} for value in json.loads(serialized)]
+
+        insert_spend_rows: Final = AsyncMock(side_effect=inserted_rows)
+        transaction: Final = MagicMock(query_raw=insert_spend_rows)
+        context: Final = MagicMock(__aenter__=AsyncMock(return_value=transaction), __aexit__=AsyncMock(return_value=None))
+        spend_prisma.db = PrismaWrapper(original_prisma=MagicMock(
+            query_raw=AsyncMock(return_value=[]), tx=MagicMock(return_value=context),
+            litellm_spendlogs=MagicMock(find_unique=AsyncMock(return_value=None)),
+            litellm_usertable=MagicMock(find_unique=AsyncMock(return_value=None)),
+        ))
         input_rate: Final = 0.000002
         litellm.register_model(
             {
@@ -3448,7 +3457,7 @@ class TestMultiPodBatchCostClaim:
             if failure_phase == "before_write":
                 assert row.status == original_status
                 assert json.loads(row.file_object) == original_file_object
-            assert insert_spend_rows.await_count == (0 if failure_phase == "before_write" else 1)
+            assert insert_spend_rows.await_count == (0 if failure_phase == "before_write" else 2)
             dependency.failure_phase = "recovered"
             await worker.check_batch_cost()
             await worker.check_batch_cost()
@@ -3456,8 +3465,10 @@ class TestMultiPodBatchCostClaim:
         assert row.batch_processed is True
         assert await budget_cache.async_get_cache("provider_spend:openai:1d") == pytest.approx(100 * input_rate)
         assert await budget_cache.async_get_cache("deployment_spend:model-123:1d") == pytest.approx(100 * input_rate)
-        insert_spend_rows.assert_awaited_once()
-        assert json.loads(insert_spend_rows.call_args.args[1])[0]["spend"] == pytest.approx(100 * input_rate)
+        assert insert_spend_rows.await_count == 2
+        stored = json.loads(insert_spend_rows.call_args_list[0].args[1])[0]
+        assert stored["accounting_payload"]["spend"] == pytest.approx(100 * input_rate)
+        assert stored["is_batch"] is True
         if producer is not None:
             assert all(
                 json.loads(call.args[0])["call_type"] != "aretrieve_batch" for call in producer.publish.call_args_list

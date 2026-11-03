@@ -713,7 +713,7 @@ async def test_update_database_records_a_non_finite_response_cost_as_zero(respon
     assert [row["spend"] for row in prisma.spend_log_transactions] == [0]
     from litellm.accounting.projection import project
 
-    contributions = project(prisma.spend_log_transactions[0])
+    contributions = project(prisma.spend_log_transactions[0]["accounting_payload"])
     daily = [dict(item.increments) for item in contributions if item.table in {"LiteLLM_DailyUserSpend", "LiteLLM_DailyTeamSpend"}]
     assert len(daily) == 2
     assert all((row["api_requests"], row["spend"]) == (1, 0) for row in daily)
@@ -888,7 +888,7 @@ async def test_spend_update_path_never_queries_user_cache_with_none_user_id():
     with patch("litellm.proxy.proxy_server.prisma_client", prisma), patch("litellm.proxy.proxy_server.user_api_key_cache", cache), patch("litellm.proxy.proxy_server.disable_spend_logs", True):
         assert await writer.update_database(token=None, user_id=None, end_user_id="end-user-1", team_id=None, org_id=None, kwargs={"model": "ledger-test", "litellm_call_id": "anonymous"}, completion_response=litellm.ModelResponse(model="ledger-test"), start_time=now, end_time=now, response_cost=0.25)
     cache.async_get_cache.assert_not_called()
-    contributions = project(prisma.spend_log_transactions[0])
+    contributions = project(prisma.spend_log_transactions[0]["accounting_payload"])
     end_users = [item for item in contributions if item.table == "LiteLLM_EndUserTable"]
     assert [(dict(item.key)["user_id"], dict(item.increments)["spend"]) for item in end_users] == [("end-user-1", 0.25)]
     assert not any(item.table == "LiteLLM_UserTable" for item in contributions)
