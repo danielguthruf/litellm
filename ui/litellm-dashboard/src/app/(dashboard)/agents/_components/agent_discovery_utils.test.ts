@@ -58,7 +58,12 @@ describe("selectionsFromUpstreamCard", () => {
 
 describe("buildDiscoveryRequest", () => {
   it("sends the LangGraph API key typed into the form", () => {
-    const values = { api_base: "https://lg.example.com/", assistant_id: "asst_1", api_key: "sk-1" };
+    const values = {
+      api_base: "https://lg.example.com/",
+      assistant_id: "asst_1",
+      auth_type: "bearer_token",
+      api_key: "sk-1",
+    };
 
     const plan = {
       url: "https://lg.example.com",
@@ -72,7 +77,12 @@ describe("buildDiscoveryRequest", () => {
   });
 
   it("sends no key when the edit form holds the redacted saved one", () => {
-    const values = { api_base: "https://lg.example.com", assistant_id: "asst_1", api_key: "REDACTED_BY_LITELM" };
+    const values = {
+      api_base: "https://lg.example.com",
+      assistant_id: "asst_1",
+      auth_type: "bearer_token",
+      api_key: "REDACTED_BY_LITELM",
+    };
 
     expect(buildDiscoveryRequest("langgraph", values)).not.toHaveProperty("api_key");
   });
