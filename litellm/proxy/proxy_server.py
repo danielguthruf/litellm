@@ -3610,7 +3610,6 @@ async def increment_spend_counters(
     request_started_at: datetime | None = None,
     model_access_groups: Sequence[str] | None = None,
     project_id: str | None = None,
-    accounting_path: str = "legacy",
 ):
     """
     Atomically increment spend counters for budget enforcement.
@@ -3647,7 +3646,6 @@ async def increment_spend_counters(
             request_started_at=request_started_at,
             model_access_groups=model_access_groups,
             project_id=project_id,
-            accounting_path=accounting_path,
         )
 
 
@@ -3762,7 +3760,6 @@ async def _increment_spend_counters_batched(
     request_started_at: datetime | None,
     model_access_groups: Sequence[str] | None,
     project_id: str | None = None,
-    accounting_path: str = "legacy",
 ):
     """Runs inside one spend counter batch: the reservation reconcile and the warm checks share a single MGET, and
     the reconcile adjustments go out in the same INCRBYFLOAT pipeline as the counter increments."""

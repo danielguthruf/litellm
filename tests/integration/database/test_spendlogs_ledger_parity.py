@@ -477,7 +477,6 @@ async def _assert_legacy_database_parity(
                 user_id="user",
                 response_cost=cost,
                 request_started_at=_NOW,
-                accounting_path=path,
             )
             await drain_logging_tasks()
             rows = tuple(client.spend_log_transactions)

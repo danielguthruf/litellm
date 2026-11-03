@@ -2870,7 +2870,7 @@ async def test_a_failure_spend_row_lands_in_the_key_budget_window_as_of_the_requ
         },
     )
 
-    windows = [item for row in client.spend_log_transactions for item in project(row) if item.table == "LiteLLM_BudgetWindowSpend"]
+    windows = [item for row in client.spend_log_transactions for item in project(row["accounting_payload"]) if item.table == "LiteLLM_BudgetWindowSpend"]
     assert [(dict(item.key)["entity_type"], dict(item.key)["entity_id"], dict(item.increments)["spend"], dict(item.values)["started_at"]) for item in windows] == [("key", "hashed-key", pytest.approx(0.125), request_start.isoformat())]
 
 

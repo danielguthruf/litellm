@@ -110,7 +110,7 @@ async def record(db: Prisma) -> AsyncIterator[Callable[..., BaselineAccountingRe
     await db.execute_raw('DELETE FROM "LiteLLM_AutoRouterBaselineObservation" WHERE scope=$1', scope)
     await db.execute_raw('DELETE FROM "LiteLLM_AutoRouterBaselineComparison" WHERE scope=$1', scope)
     await db.execute_raw(
-        'DELETE FROM "LiteLLM_AccountingDelivery" WHERE request_id IN '
+        'DELETE FROM "LiteLLM_SpendLogDelivery" WHERE request_id IN '
         '(SELECT request_id FROM "LiteLLM_SpendLogs" WHERE api_key=$1)', key,
     )
     await db.execute_raw('DELETE FROM "LiteLLM_SpendLogs" WHERE api_key=$1', key)
@@ -313,6 +313,7 @@ async def test_native_observation_enters_spend_pipeline_once_with_shared_daily_a
 ) -> None:
     import os
 
+    from litellm.accounting.snapshot import build_accounting_payload
     from litellm.accounting.worker import flush_accounting_deliveries
     from litellm.proxy.common_utils.user_api_key_cache import UserApiKeyCache
     from litellm.proxy.db.db_spend_update_writer import DBSpendUpdateWriter
@@ -326,7 +327,15 @@ async def test_native_observation_enters_spend_pipeline_once_with_shared_daily_a
     writer: Final = DBSpendUpdateWriter()
     try:
         await client.db.connect()
-        assert await SpendLogsRepository(client).insert_with_deliveries(({**payload, "accounting_path": "ledger"},)) == 1
+        accounting_payload: Final = build_accounting_payload(
+            payload,
+            entities={"api_key": event.api_key, "user": None, "team_id": "", "organization_id": "org"},
+            model_access_groups=(),
+            windows=(),
+            router=lambda: None,
+        )
+        rows: Final = ({**payload, "accounting_path": "ledger", "accounting_payload": accounting_payload},)
+        assert await SpendLogsRepository(client).insert_with_deliveries(rows) == 1
         await writer._enqueue_autorouter_turn_transaction(payload, client)
         assert len(client.baseline_accounting_transactions) == 1
         queued: Final = client.baseline_accounting_transactions[0]

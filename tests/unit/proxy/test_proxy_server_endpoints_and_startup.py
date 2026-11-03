@@ -14189,7 +14189,7 @@ async def _drain(rows):
     from litellm.repositories.accounting_delivery_repository import DeliveryProjection
     captured = tuple(rows)
     rows.clear()
-    return [_window(item) for item in project_deliveries(tuple(DeliveryProjection(row, None) for row in captured)) if item.table == "LiteLLM_BudgetWindowSpend"]
+    return [_window(item) for item in project_deliveries(tuple(DeliveryProjection(row["accounting_payload"], None) for row in captured)) if item.table == "LiteLLM_BudgetWindowSpend"]
 
 
 async def _record_window_accounting(**kwargs):
