@@ -647,6 +647,7 @@ class ProxyExtrasDBManager:
         purpose: str,
         connect: LensCheckConnect | None,
         query: "Callable[[psycopg.Connection[tuple[object, ...]], str], bool]",
+        fail_closed: bool = True,
     ) -> bool:
         database_url: Final = os.environ.get("DATABASE_URL")
         if not database_url:
@@ -662,6 +663,9 @@ class ProxyExtrasDBManager:
             ) as connection:
                 return query(connection, ProxyExtrasDBManager._prisma_schema_param(database_url) or "public")
         except psycopg.Error as exc:
+            if not fail_closed:
+                logger.warning(f"Cannot verify {purpose} before migrating: {_redact_credentials(str(exc)).strip()}")
+                return False
             raise RuntimeError(
                 f"Cannot verify {purpose}; refusing prisma db push. "
                 f"The database check failed: {_redact_credentials(str(exc)).strip()}"
@@ -688,7 +692,9 @@ class ProxyExtrasDBManager:
             )
 
     @staticmethod
-    def raise_if_accounting_deliveries_unsettled(connect: LensCheckConnect | None = None) -> None:
+    def raise_if_accounting_deliveries_unsettled(
+        connect: LensCheckConnect | None = None, *, fail_closed: bool = True
+    ) -> None:
         def unsettled_deliveries_exist(connection: "psycopg.Connection[tuple[object, ...]]", schema: str) -> bool:
             from psycopg import sql
 
@@ -708,11 +714,11 @@ class ProxyExtrasDBManager:
             )
 
         if ProxyExtrasDBManager._push_check_finds_unsafe_data(
-            "accounting deliveries", connect, unsettled_deliveries_exist
+            "accounting deliveries", connect, unsettled_deliveries_exist, fail_closed
         ):
             raise RuntimeError(
                 "LiteLLM_AccountingDelivery has pending or parked rows from the experimental accounting_capture "
-                "setting. prisma db push would drop them. Drain them on the previous build with that setting still on "
+                "setting. This upgrade would drop them. Drain them on the previous build with that setting still on "
                 "before upgrading."
             )
 
@@ -1079,7 +1085,6 @@ class ProxyExtrasDBManager:
 
         if not use_migrate:
             ProxyExtrasDBManager.raise_if_lens_rename_pending()
-            ProxyExtrasDBManager.raise_if_accounting_deliveries_unsettled()
             if ProxyExtrasDBManager.spend_logs_is_partitioned():
                 raise RuntimeError(PARTITIONED_SPEND_LOGS_PUSH_ERROR)
             original_dir = os.getcwd()
@@ -1572,6 +1577,7 @@ class ProxyExtrasDBManager:
 
     @staticmethod
     def _run_migrations(use_migrate: bool, use_v2_resolver: bool) -> bool:
+        ProxyExtrasDBManager.raise_if_accounting_deliveries_unsettled(fail_closed=not use_migrate)
         if use_v2_resolver:
             logger.info("Using v2 migration resolver (--use_v2_migration_resolver)")
             return ProxyExtrasDBManager._setup_database_v2(use_migrate=use_migrate)
@@ -1758,7 +1764,6 @@ class ProxyExtrasDBManager:
                         raise RuntimeError(PARTITIONED_SPEND_LOGS_PUSH_ERROR)
                     # Use prisma db push with increased timeout
                     ProxyExtrasDBManager.raise_if_lens_rename_pending()
-                    ProxyExtrasDBManager.raise_if_accounting_deliveries_unsettled()
                     prisma_toolchain.run_prisma(
                         [_get_prisma_command(), "db", "push", "--accept-data-loss"],
                         timeout=prisma_command_timeout(),

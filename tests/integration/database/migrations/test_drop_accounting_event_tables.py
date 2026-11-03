@@ -1,5 +1,5 @@
 import os
-from collections.abc import Callable, Iterator
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Final
 from uuid import uuid4
@@ -95,20 +95,22 @@ def test_settled_deliveries_let_the_migration_drop_every_old_object_and_rerun(
     assert ProxyExtrasDBManager.raise_if_accounting_deliveries_unsettled() is None
 
 
-@pytest.mark.parametrize(
-    "push",
-    [
-        lambda: ProxyExtrasDBManager._run_migrations(use_migrate=False, use_v2_resolver=False),
-        lambda: ProxyExtrasDBManager._setup_database_v2(use_migrate=False),
-    ],
-    ids=["v1", "v2"],
-)
-def test_schema_push_refuses_to_drop_unsettled_deliveries(
-    schema: tuple[str, psycopg.Connection[tuple[object, ...]]], push: Callable[[], object]
+@pytest.mark.parametrize("use_migrate", [True, False], ids=["migrate", "push"])
+@pytest.mark.parametrize("use_v2_resolver", [True, False], ids=["v2", "v1"])
+def test_startup_refuses_unsettled_deliveries_before_prisma_records_anything(
+    schema: tuple[str, psycopg.Connection[tuple[object, ...]]], use_migrate: bool, use_v2_resolver: bool
 ) -> None:
     name, connection = schema
     _deliver(connection, "pending")
 
     with pytest.raises(RuntimeError, match="pending or parked rows"):
-        push()
+        ProxyExtrasDBManager._run_migrations(use_migrate=use_migrate, use_v2_resolver=use_v2_resolver)
+    assert (
+        connection.execute(
+            "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace "
+            "WHERE n.nspname=%s AND c.relname='_prisma_migrations'",
+            (name,),
+        ).fetchone()
+        is None
+    )
     assert sorted(_remaining(connection, name)) == sorted(_OLD_OBJECTS)

@@ -2373,3 +2373,19 @@ class TestMigrateDeployRunsUnderTheCoordinatorLock:
 
         assert ProxyExtrasDBManager._run_database_v2(True, deploy_lock=self._recording_lock(events)) is True
         assert events == ["lock", "deploy", "unlock", "lock", "rollback", "unlock", "lock", "deploy", "unlock"]
+
+
+class TestAccountingDeliveryUpgradeGuard:
+    def test_an_unreachable_database_blocks_schema_push_but_leaves_migrate_to_its_backstop(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        import psycopg
+
+        monkeypatch.setenv("DATABASE_URL", "postgresql://litellm:hunter2@localhost:5432/litellm")
+
+        def refuse(conninfo: str, *, connect_timeout: int, autocommit: bool) -> NoReturn:
+            raise psycopg.OperationalError("connection refused")
+
+        assert ProxyExtrasDBManager.raise_if_accounting_deliveries_unsettled(connect=refuse, fail_closed=False) is None
+        with pytest.raises(RuntimeError, match="Cannot verify accounting deliveries"):
+            ProxyExtrasDBManager.raise_if_accounting_deliveries_unsettled(connect=refuse)
