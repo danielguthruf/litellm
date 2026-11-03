@@ -189,6 +189,34 @@ describe("AgentCardDiscovery", () => {
     });
   });
 
+  it("sends the credentials only when the admin clicks Discover", async () => {
+    mockDiscover.mockRejectedValueOnce(new Error("HTTP 401")).mockResolvedValue({
+      url: "https://lg.example.com",
+      agent_card: sampleCard,
+    });
+    const plan = {
+      url: "https://lg.example.com",
+      discovery_mode: "langgraph_platform" as const,
+      params: { assistant_id: "asst_1" },
+      api_key: "sk-1",
+      static_headers: { "x-tenant": "t1" },
+    };
+    renderWithProviders(<AgentCardDiscovery accessToken="tok" onApply={vi.fn()} discoveryRequest={plan} />);
+    await vi.advanceTimersByTimeAsync(500);
+    expect(await screen.findByText(/HTTP 401/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Discover/ }));
+
+    await waitFor(() => expect(mockDiscover).toHaveBeenCalledTimes(2));
+    const anonymous = { discovery_mode: "langgraph_platform", params: { assistant_id: "asst_1" } };
+    expect(mockDiscover).toHaveBeenNthCalledWith(1, "tok", "https://lg.example.com", anonymous);
+    expect(mockDiscover).toHaveBeenNthCalledWith(2, "tok", "https://lg.example.com", {
+      ...anonymous,
+      api_key: "sk-1",
+      static_headers: { "x-tenant": "t1" },
+    });
+  });
+
   it("disables Re-discover until the parent provides a usable URL", async () => {
     renderWithProviders(
       <AgentCardDiscovery
