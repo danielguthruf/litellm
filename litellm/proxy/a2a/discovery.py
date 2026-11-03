@@ -16,15 +16,17 @@ fetcher dispatches by ``discovery_mode``:
 
 from collections.abc import Mapping
 from enum import Enum
+from types import MappingProxyType
 from typing import Final
 from urllib.parse import urlencode
 
+import httpx
 from pydantic import TypeAdapter
 
 from litellm._logging import verbose_proxy_logger
 from litellm.litellm_core_utils.core_helpers import as_str_mapping
 from litellm.litellm_core_utils.url_utils import SSRFError, async_safe_get
-from litellm.llms.custom_httpx.http_handler import get_async_httpx_client
+from litellm.llms.custom_httpx.http_handler import AsyncHTTPHandler, get_async_httpx_client
 from litellm.types.llms.custom_http import httpxSpecialProvider
 
 
@@ -54,6 +56,33 @@ _DECODED_JSON: Final = TypeAdapter(object)
 
 class AgentCardDiscoveryError(Exception):
     """Raised when none of the well-known paths returned a usable agent card."""
+
+
+def card_request_headers(
+    api_key: str | None, static_headers: Mapping[str, str], discovery_mode: DiscoveryMode
+) -> Mapping[str, str]:
+    """Authenticate like the agent's runtime: a LangGraph key overrides a static Authorization header,
+    while an A2A agent's static Authorization header overrides the key."""
+    bearer: Final = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+    if bearer and discovery_mode is DiscoveryMode.LANGGRAPH_PLATFORM:
+        unauthorized: Final = {name: value for name, value in static_headers.items() if name.lower() != "authorization"}
+        return MappingProxyType({**unauthorized, **bearer})
+    sets_authorization: Final = any(name.lower() == "authorization" for name in static_headers)
+    return MappingProxyType({**({} if sets_authorization else bearer), **static_headers})
+
+
+async def _get_card(client: AsyncHTTPHandler, url: str, headers: Mapping[str, str]) -> httpx.Response:
+    """Make discovery's anonymous request; when it is answered without the card, retry once with the agent's
+    credentials, never following a redirect with them."""
+    response: Final = await async_safe_get(client, url, headers={})
+    if not headers or response.status_code == 200:
+        return response
+    try:
+        credentialed: Final = await async_safe_get(client, url, headers=dict(headers), follow_redirects=False)
+    except (httpx.HTTPError, ValueError):  # ValueError: the aiohttp transport rejecting a header value
+        verbose_proxy_logger.debug("A2A discovery with credentials failed for %s", url)
+        return response
+    return credentialed if credentialed.status_code == 200 else response
 
 
 def _normalize_base_url(base_url: str) -> str:
@@ -126,7 +155,7 @@ async def fetch_well_known_card(
             # returns ``None`` when the key is present-but-None, then crashes
             # on ``{**None, "Host": ...}``. Default the kwarg to an empty
             # dict so production (``user_url_validation=True``) doesn't 500.
-            response = await async_safe_get(client, url, headers=headers or {})
+            response = await _get_card(client, url, headers or {})
         except SSRFError as exc:
             last_error = f"{url}: {exc}"
             verbose_proxy_logger.debug("A2A discovery blocked by SSRF guard for %s: %s", url, exc)

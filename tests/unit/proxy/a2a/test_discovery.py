@@ -1,8 +1,12 @@
 """Tests for the well-known card fetcher and the discovery endpoint."""
 
+from collections.abc import Mapping
+from typing import Final
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
+import respx
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -12,6 +16,7 @@ from litellm.proxy.a2a.discovery import (
     AGENT_CARD_WELL_KNOWN_PATHS,
     AgentCardDiscoveryError,
     DiscoveryMode,
+    card_request_headers,
     fetch_well_known_card,
 )
 from litellm.proxy.a2a.endpoints import router as a2a_router
@@ -281,3 +286,143 @@ def test_discover_rejects_unknown_mode():
         json={"url": "http://localhost:2024", "discovery_mode": "bogus"},
     )
     assert resp.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# Discovery authenticates like the saved agent
+# ---------------------------------------------------------------------------
+
+_UPSTREAM: Final = "https://upstream.example"
+_CARD: Final = {"name": "upstream-agent"}
+_BASIC: Final = {"authorization": "Basic dXNlcjpwdw=="}
+
+
+@pytest.mark.parametrize(
+    ("api_key", "static_headers", "mode", "expected"),
+    [
+        (
+            "sk-typed",
+            {"x-tenant": "t1"},
+            DiscoveryMode.WELL_KNOWN_FALLBACK,
+            {"Authorization": "Bearer sk-typed", "x-tenant": "t1"},
+        ),
+        ("sk-typed", _BASIC, DiscoveryMode.WELL_KNOWN_FALLBACK, _BASIC),
+        (
+            "sk-typed",
+            {**_BASIC, "x-tenant": "t1"},
+            DiscoveryMode.LANGGRAPH_PLATFORM,
+            {"x-tenant": "t1", "Authorization": "Bearer sk-typed"},
+        ),
+        (None, _BASIC, DiscoveryMode.LANGGRAPH_PLATFORM, _BASIC),
+        ("", {}, DiscoveryMode.WELL_KNOWN_FALLBACK, {}),
+    ],
+)
+def test_card_request_headers_authenticate_like_the_agents_runtime(
+    api_key: str | None, static_headers: Mapping[str, str], mode: DiscoveryMode, expected: Mapping[str, str]
+) -> None:
+    assert dict(card_request_headers(api_key, static_headers, mode)) == expected
+
+
+def _card_behind_auth(request: httpx.Request) -> httpx.Response:
+    return httpx.Response(200, json=_CARD) if "authorization" in request.headers else httpx.Response(401)
+
+
+@pytest.mark.usefixtures("httpx_transport")
+@respx.mock
+def test_discover_sends_the_key_and_static_headers_upstream() -> None:
+    route: Final = respx.get(f"{_UPSTREAM}/.well-known/agent-card.json").mock(side_effect=_card_behind_auth)
+
+    response: Final = _client_for_role(LitellmUserRoles.PROXY_ADMIN).post(
+        "/v1/a2a/discover",
+        json={"url": _UPSTREAM, "api_key": "sk-typed", "static_headers": {"x-tenant": "t1"}},
+    )
+
+    assert (response.status_code, response.json()["agent_card"]) == (200, _CARD)
+    sent: Final = [(call.request.headers.get("authorization"), call.request.headers.get("x-tenant")) for call in route.calls]
+    assert sent == [(None, None), ("Bearer sk-typed", "t1")]
+
+
+_LOCAL_AGENT: Final = "http://127.0.0.1:8123"
+_OTHER_ORIGIN: Final = "http://127.0.0.1:8124"
+
+
+@pytest.mark.parametrize("validate_urls", [True, False])
+@pytest.mark.usefixtures("httpx_transport")
+def test_discover_never_sends_credentials_to_a_redirect_target(
+    monkeypatch: pytest.MonkeyPatch, validate_urls: bool
+) -> None:
+    monkeypatch.setattr(litellm, "user_url_validation", validate_urls)
+    monkeypatch.setattr(litellm, "user_url_allowed_hosts", ["127.0.0.1:8123", "127.0.0.1:8124"])
+
+    def agent(request: httpx.Request) -> httpx.Response:
+        if "x-api-key" in request.headers:
+            return httpx.Response(302, headers={"Location": f"{_OTHER_ORIGIN}/card"})
+        return httpx.Response(401)
+
+    with respx.mock(assert_all_called=False) as router:
+        router.get(url__startswith=_LOCAL_AGENT).mock(side_effect=agent)
+        elsewhere: Final = router.get(url__startswith=_OTHER_ORIGIN).respond(200, json=_CARD)
+        response: Final = _client_for_role(LitellmUserRoles.PROXY_ADMIN).post(
+            "/v1/a2a/discover", json={"url": _LOCAL_AGENT, "static_headers": {"x-api-key": "secret"}}
+        )
+
+    assert response.status_code == 400
+    assert elsewhere.call_count == 0
+
+
+@pytest.mark.usefixtures("httpx_transport")
+@respx.mock
+def test_discover_loads_a_public_card_exactly_as_before_without_sending_credentials() -> None:
+    route: Final = respx.get(f"{_UPSTREAM}/.well-known/agent-card.json").respond(200, json=_CARD)
+
+    response: Final = _client_for_role(LitellmUserRoles.PROXY_ADMIN).post(
+        "/v1/a2a/discover", json={"url": _UPSTREAM, "api_key": "sk-1", "static_headers": {"x-tenant": "t1"}}
+    )
+
+    assert (response.status_code, response.json()["agent_card"]) == (200, _CARD)
+    assert [dict(call.request.headers).keys() & {"authorization", "x-tenant"} for call in route.calls] == [set()]
+
+
+@pytest.mark.parametrize(
+    "rejection",
+    [
+        httpx.Response(401),
+        httpx.LocalProtocolError("Illegal header value"),
+        ValueError("Newline in header value"),
+        httpx.ReadTimeout("timed out"),
+    ],
+)
+@pytest.mark.usefixtures("httpx_transport")
+@respx.mock
+def test_discover_reports_the_anonymous_answer_when_the_credentials_fail(rejection: httpx.Response | Exception) -> None:
+    def card(request: httpx.Request) -> httpx.Response:
+        if "authorization" not in request.headers:
+            return httpx.Response(403)
+        if isinstance(rejection, Exception):
+            raise rejection
+        return rejection
+
+    respx.route().mock(side_effect=card)
+
+    response: Final = _client_for_role(LitellmUserRoles.PROXY_ADMIN).post(
+        "/v1/a2a/discover", json={"url": _UPSTREAM, "api_key": "sk-1"}
+    )
+
+    assert (response.status_code, response.json()["detail"]) == (
+        400,
+        "Could not fetch agent card from https://upstream.example (mode=well_known_fallback). "
+        "Last error: https://upstream.example/agent.json: HTTP 403",
+    )
+
+
+@pytest.mark.usefixtures("httpx_transport")
+@respx.mock
+def test_discover_does_not_wait_twice_for_an_unresponsive_agent() -> None:
+    timing_out: Final = respx.route().mock(side_effect=httpx.ReadTimeout("timed out"))
+
+    response: Final = _client_for_role(LitellmUserRoles.PROXY_ADMIN).post(
+        "/v1/a2a/discover", json={"url": _UPSTREAM, "api_key": "sk-1"}
+    )
+
+    assert response.status_code == 400
+    assert timing_out.call_count == len(AGENT_CARD_WELL_KNOWN_PATHS)
