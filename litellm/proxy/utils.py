@@ -5561,6 +5561,16 @@ class _StaleReadEngine:
         return self.wrapper is current and self.generation == current.engine_generation
 
 
+def _user_unique_conflict_message(metadata: object, user_id: object) -> str:
+    match metadata:
+        case {"target": ["user_id"]}:
+            return f"User with id {user_id} already exists"
+        case {"target": ["sso_user_id"]}:
+            return "User with this sso_user_id already exists"
+        case _:
+            return "User conflicts with an existing unique value"
+
+
 class PrismaClient:
     spend_log_transactions: list = []
     _spend_log_transactions_lock = asyncio.Lock()
@@ -6448,6 +6458,7 @@ class PrismaClient:
         max_tries=3,  # maximum number of retries
         max_time=10,  # maximum total time to retry for
         on_backoff=on_backoff,  # specifying the function to call on backoff
+        giveup=lambda exc: isinstance(exc, HTTPException) and exc.status_code == 409,
     )
     @log_db_metrics
     async def insert_data(
@@ -6506,7 +6517,7 @@ class PrismaClient:
                 except UniqueViolationError as e:
                     raise HTTPException(
                         status_code=409,
-                        detail={"error": f"User with id {db_data['user_id']} already exists"},
+                        detail={"error": _user_unique_conflict_message(e.meta, db_data["user_id"])},
                     ) from e
                 except Exception as e:
                     if (
