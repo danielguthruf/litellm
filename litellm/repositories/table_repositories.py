@@ -226,12 +226,18 @@ class SpendLogsRepository(PrismaTableRepository["prisma_models.LiteLLM_SpendLogs
         async with db_span("update", "LiteLLM_SpendLogs"):
             updated: Final = tuple(
                 [
-                    await transaction.query_raw(*spend_log_takeover_statement(row))
+                    await transaction.query_raw(*spend_log_takeover_statement(row, legacy_only=True))
                     for row in conflicting
                     if _charges_a_batch(row)
                 ]
             )
-        return frozenset(str(row["request_id"]) for row in chain.from_iterable(updated))
+        taken_over: Final = tuple(str(row["request_id"]) for row in chain.from_iterable(updated))
+        if taken_over:
+            await transaction.execute_raw(
+                'UPDATE "LiteLLM_SpendLogDelivery" SET legacy_takeover = true WHERE request_id = ANY($1::text[])',
+                taken_over,
+            )
+        return frozenset(taken_over)
 
     async def batch_delivery(self, request_id: str) -> Mapping[str, object] | None:
         database: Final[LedgerTransaction] = self.prisma_client.writer_db

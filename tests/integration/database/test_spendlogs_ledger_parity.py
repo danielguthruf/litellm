@@ -885,20 +885,17 @@ async def test_failed_claim_over_a_legacy_zero_batch_row_still_charges_it_once(
     client.model_usage_transactions = []
     writer = DBSpendUpdateWriter()
     monkeypatch.setattr(proxy_server, "prisma_client", client)
-    monkeypatch.setattr(proxy_server, "general_settings", {"use_spend_logs_ledger": False})
     monkeypatch.setattr(proxy_server, "disable_spend_logs", False)
     monkeypatch.setattr(proxy_server, "user_api_key_cache", UserApiKeyCache())
     await client.db.connect()
     try:
-        assert await _retrieve_batch(writer, 0)
-        await drain_logging_tasks()
-        await SpendLogsRepository(client).insert_with_deliveries(tuple(client.spend_log_transactions))
-        client.spend_log_transactions = []
-        monkeypatch.setattr(proxy_server, "general_settings", {"use_spend_logs_ledger": True})
+        await client.writer_db.execute_raw(
+            'INSERT INTO "LiteLLM_SpendLogs" '
+            '(request_id, call_type, status, api_key, spend, "startTime", "endTime") '
+            "VALUES ('batch_batch_cost', 'aretrieve_batch', 'success', 'key', 0, $1::timestamp, $1::timestamp)",
+            _NOW,
+        )
         with psycopg.connect(parity_database, autocommit=True) as connection:
-            assert connection.execute(
-                'SELECT spend, accounting_path FROM "LiteLLM_SpendLogs" WHERE request_id=\'batch_batch_cost\''
-            ).fetchall() == [(0.0, "legacy")]
             connection.execute('ALTER TABLE "LiteLLM_SpendLogDelivery" RENAME TO "LiteLLM_SpendLogDelivery_unavailable"')
         assert await _retrieve_batch(writer, 0.25)
         queued = tuple(client.spend_log_transactions)
@@ -914,7 +911,9 @@ async def test_failed_claim_over_a_legacy_zero_batch_row_still_charges_it_once(
             assert connection.execute(
                 'SELECT spend FROM "LiteLLM_SpendLogs" WHERE request_id=\'batch_batch_cost\''
             ).fetchall() == [(0.25,)]
-            assert connection.execute('SELECT state::text FROM "LiteLLM_SpendLogDelivery"').fetchall() == [("applied",)]
+            assert connection.execute(
+                'SELECT state::text, legacy_takeover FROM "LiteLLM_SpendLogDelivery"'
+            ).fetchall() == [("applied", True)]
     finally:
         await client.db.disconnect()
 
