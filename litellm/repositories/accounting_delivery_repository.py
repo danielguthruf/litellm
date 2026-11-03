@@ -43,12 +43,14 @@ class _Delivery(BaseModel):
     attempts: int
     accounting_payload: JsonValue
     previous_payload: JsonValue = None
+    legacy_takeover: bool = False
 
 
 @dataclass(frozen=True, slots=True)
 class DeliveryProjection:
     row: Mapping[str, object]
     previous_payload: Mapping[str, object] | None
+    legacy_takeover: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,7 +74,7 @@ class DeliveryMetrics(BaseModel):
 _DELIVERIES: Final = TypeAdapter(tuple[_Delivery, ...])
 _PAYLOAD: Final = TypeAdapter(dict[str, object])
 _TIMEOUT: Final = timedelta(seconds=60)
-_CLAIM: Final = """SELECT delivery_id, attempts, accounting_payload, previous_payload FROM "LiteLLM_SpendLogDelivery"
+_CLAIM: Final = """SELECT delivery_id, attempts, accounting_payload, previous_payload, legacy_takeover FROM "LiteLLM_SpendLogDelivery"
 WHERE state = 'pending' AND next_attempt_at <= CURRENT_TIMESTAMP
   AND (attempts > 0) = $2::boolean
 ORDER BY next_attempt_at, delivery_id LIMIT $1::integer FOR UPDATE SKIP LOCKED"""
@@ -84,7 +86,7 @@ SET attempts = attempts + 1, last_error = $3,
     next_attempt_at = CURRENT_TIMESTAMP + make_interval(secs => LEAST(300, power(2, LEAST(attempts, 8)))::integer),
     state = $4::"AccountingDeliveryState"
 WHERE delivery_id = $1 AND state = 'pending' AND attempts = $2::integer
-RETURNING delivery_id, attempts, accounting_payload, previous_payload"""
+RETURNING delivery_id, attempts, accounting_payload, previous_payload, legacy_takeover"""
 
 
 class AccountingDeliveryRepository:
@@ -149,6 +151,7 @@ class AccountingDeliveryRepository:
                             None
                             if delivery.previous_payload is None
                             else _PAYLOAD.validate_python(delivery.previous_payload),
+                            delivery.legacy_takeover,
                         )
                         for delivery in claimed
                     ),

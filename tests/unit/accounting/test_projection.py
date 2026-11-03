@@ -458,3 +458,14 @@ def test_every_daily_row_uses_the_calendar_date_of_the_request(start: object) ->
     }
     assert {"LiteLLM_DailyUserSpend", "LiteLLM_DailyModelUsage"} <= dates.keys()
     assert set(dates.values()) == {"2026-11-02"}
+
+
+def test_legacy_takeover_applies_the_new_row_without_projecting_old_metadata():
+    from litellm.accounting.delivery_projection import project_deliveries
+    from litellm.repositories.accounting_delivery_repository import DeliveryProjection
+
+    new = {"request_id": "batch", "api_key": "key", "spend": 0.25}
+    old = {"request_id": "batch", "api_key": "old-key", "spend": 99, "metadata": {}}
+    contributions = project_deliveries((DeliveryProjection(new, old, legacy_takeover=True),))
+    assert contributions == project_deliveries((DeliveryProjection(new, None),))
+    assert [(dict(item.key)["token"], dict(item.increments)["spend"]) for item in contributions if item.table == "LiteLLM_VerificationToken"] == [("key", 0.25)]

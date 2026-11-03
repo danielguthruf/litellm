@@ -2148,6 +2148,7 @@ model LiteLLM_SpendLogDelivery {
   state              AccountingDeliveryState @default(pending)
   accounting_payload Json
   previous_payload   Json?
+  legacy_takeover Boolean @default(false)
   is_batch           Boolean
   attempts           Int                     @default(0)
   next_attempt_at    DateTime                @default(now())

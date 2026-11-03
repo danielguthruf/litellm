@@ -36,6 +36,7 @@ def delivery_database(request: pytest.FixtureRequest) -> Iterator[psycopg.Connec
             updated_at timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
         )""")
         connection.execute((_MIGRATIONS / "20261103010000_spendlogs_accounting_delivery/migration.sql").read_text())
+        connection.execute((_MIGRATIONS / "20261103020000_spendlogs_ledger_cutover/migration.sql").read_text())
         yield connection
 
 
@@ -338,7 +339,7 @@ async def test_batch_takeover_preserves_pending_work_or_queues_difference(
 
 
 @pytest.mark.asyncio
-async def test_legacy_batch_takeover_stays_legacy_across_flag_change(
+async def test_legacy_batch_takeover_creates_a_full_projection_delivery(
     delivery_database: psycopg.Connection[tuple[object, ...]],
     delivery_client: Prisma,
 ) -> None:
@@ -357,11 +358,11 @@ async def test_legacy_batch_takeover_stays_legacy_across_flag_change(
     result: Final = await repository.take_over_batch(
         _with_payload({**initial, "spend": 0.5, "accounting_path": "ledger"})
     )
-    assert not result.charged
+    assert result.charged
     assert result.accounting_path == "legacy"
-    assert delivery_database.execute('SELECT COUNT(*) FROM "LiteLLM_SpendLogDelivery"').fetchone() == (0,)
+    assert delivery_database.execute('SELECT COUNT(*) FROM "LiteLLM_SpendLogDelivery"').fetchone() == (1,)
     assert delivery_database.execute('SELECT spend, accounting_path FROM "LiteLLM_SpendLogs"').fetchone() == (
-        0.0,
+        0.5,
         "legacy",
     )
 
@@ -446,28 +447,16 @@ async def test_batch_takeover_waits_for_worker_then_applies_only_difference(
     assert delivery_database.execute("SELECT spend FROM totals").fetchone() == (1.0,)
 
 
-def test_downgrade_requires_drained_buffers_disabled_writers_and_no_unsettled_rows(
-    delivery_database: psycopg.Connection[tuple[object, ...]],
-) -> None:
-    import subprocess
+def test_cutover_ends_the_downgrade_window():
+    import runpy
     import sys
+    from unittest.mock import patch
 
-    url = urlunsplit(urlsplit(os.environ["DATABASE_URL"])._replace(path=f"/{delivery_database.info.dbname}"))
-    command = [sys.executable, "scripts/check_spendlogs_ledger_downgrade.py"]
-    environment = {**os.environ, "DATABASE_URL": url}
-    assert subprocess.run(command, env=environment, capture_output=True).returncode == 1
-    assert (
-        subprocess.run(command + ["--all-writers-ledger-disabled"], env=environment, capture_output=True).returncode
-        == 1
-    )
-    confirmed = command + ["--all-writers-ledger-disabled", "--ledger-buffers-drained"]
-    _insert(delivery_database, (_row("pending"), _row("parked")))
-    delivery_database.execute("UPDATE \"LiteLLM_SpendLogDelivery\" SET state='parked' WHERE request_id='parked'")
-    blocked = subprocess.run(confirmed, env=environment, capture_output=True, text=True)
-    assert blocked.returncode == 1 and "1 pending and 1 parked" in blocked.stdout, blocked.stderr
-    delivery_database.execute("UPDATE \"LiteLLM_SpendLogDelivery\" SET state='applied'")
-    passed = subprocess.run(confirmed, env=environment, capture_output=True, text=True)
-    assert passed.returncode == 0 and "no pending or parked" in passed.stdout, passed.stderr
+    script = Path(__file__).resolve().parents[3] / "scripts/check_spendlogs_ledger_downgrade.py"
+    with patch.object(sys, "argv", [str(script), "--all-writers-ledger-disabled", "--ledger-buffers-drained"]):
+        with pytest.raises(SystemExit) as result:
+            runpy.run_path(str(script), run_name="__main__")
+    assert result.value.code == 1
 
 
 @pytest.mark.parametrize("delivery_database", ["public", "ledger_tenant"], indirect=True)
@@ -633,7 +622,7 @@ async def test_invalid_worker_settings_preserve_pending_work(delivery_database, 
     (("--ledger-buffers-drained",), "applied", 1),
     (("--all-writers-ledger-disabled", "--ledger-buffers-drained"), "pending", 1),
     (("--all-writers-ledger-disabled", "--ledger-buffers-drained"), "parked", 1),
-    (("--all-writers-ledger-disabled", "--ledger-buffers-drained"), "applied", 0),
+    (("--all-writers-ledger-disabled", "--ledger-buffers-drained"), "applied", 1),
 ])
 def test_downgrade_command_requires_operator_attestations_and_settled_deliveries(
     delivery_database, monkeypatch, capfd, flags, state, expected

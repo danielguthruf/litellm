@@ -82,7 +82,7 @@ def spend_log_insert_statement(rows: Sequence[Mapping[str, object]]) -> tuple[Li
     return sql, safe_dumps(values, non_finite_as_null=True)
 
 
-def spend_log_takeover_statement(row: Mapping[str, object]) -> tuple[LiteralString, str]:
+def spend_log_takeover_statement(row: Mapping[str, object], *, legacy_only: bool = False) -> tuple[LiteralString, str]:
     if not frozenset(row).issubset(_COLUMNS):
         raise ValueError("Batch takeover requires known SpendLogs columns")
     columns: Final[tuple[LiteralString, ...]] = tuple(
@@ -98,7 +98,9 @@ def spend_log_takeover_statement(row: Mapping[str, object]) -> tuple[LiteralStri
         + assignments
         + ', updated_at = CURRENT_TIMESTAMP FROM jsonb_populate_record(NULL::"LiteLLM_SpendLogs", $1::jsonb) replacement '
         "WHERE stored.request_id = replacement.request_id AND stored.call_type = 'aretrieve_batch' "
-        "AND stored.status = 'success' AND stored.spend = 0 RETURNING stored.request_id"
+        "AND stored.status = 'success' AND stored.spend = 0 "
+        + ("AND (stored.accounting_path IS NULL OR stored.accounting_path = 'legacy') " if legacy_only else "")
+        + "RETURNING stored.request_id"
     )
     return sql, safe_dumps(
         {column: _json_value(column, value) for column, value in row.items()}, non_finite_as_null=True

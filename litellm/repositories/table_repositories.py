@@ -255,7 +255,7 @@ class SpendLogsRepository(PrismaTableRepository["prisma_models.LiteLLM_SpendLogs
             row["request_id"],
         )
         if not receipts:
-            return BatchTakeover(False, "legacy")
+            return await SpendLogsRepository._take_over_legacy_batch(transaction, row)
         old: Final = _SPEND_LOG_FIELDS.validate_python(receipts[0]["accounting_payload"])
         new: Final = _accounting_payload(row["accounting_payload"])
         if old.get("call_type") != "aretrieve_batch" or old.get("status") != "success":
@@ -276,6 +276,35 @@ class SpendLogsRepository(PrismaTableRepository["prisma_models.LiteLLM_SpendLogs
             safe_dumps(new, non_finite_as_null=True),
         )
         return BatchTakeover(True, "ledger")
+
+
+    @staticmethod
+    async def _take_over_legacy_batch(transaction: LedgerTransaction, row: Mapping[str, object]) -> BatchTakeover:
+        from litellm.proxy.db.db_span import db_span
+        from litellm.repositories.spend_log_insert import spend_log_takeover_statement
+
+        payload: Final = _accounting_payload(row["accounting_payload"])
+        spend: Final = payload.get("spend")
+        if not isinstance(spend, (int, float)) or spend <= 0:
+            return BatchTakeover(False, "legacy")
+        inserted: Final = await transaction.query_raw(
+            'INSERT INTO "LiteLLM_SpendLogDelivery" (request_id, accounting_payload, is_batch, legacy_takeover) '
+            'VALUES ($1, $2::jsonb, true, true) ON CONFLICT (request_id) DO NOTHING RETURNING request_id',
+            row["request_id"],
+            safe_dumps(payload, non_finite_as_null=True),
+        )
+        if not inserted:
+            return BatchTakeover(False, "legacy")
+        local_row: Final = {
+            key: value for key, value in row.items() if key not in {"accounting_payload", "accounting_log_disabled"}
+        }
+        async with db_span("update", "LiteLLM_SpendLogs"):
+            changed: Final = await transaction.query_raw(*spend_log_takeover_statement(local_row, legacy_only=True))
+        if not changed:
+            await transaction.execute_raw(
+                'DELETE FROM "LiteLLM_SpendLogDelivery" WHERE request_id = $1', row["request_id"]
+            )
+        return BatchTakeover(bool(changed), "legacy")
 
 
 class BudgetWindowSpendRepository(PrismaTableRepository["prisma_models.LiteLLM_BudgetWindowSpend"]):

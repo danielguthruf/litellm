@@ -3823,7 +3823,7 @@ class TestSpendLogsPayload:
             expected_payload = SpendLogsPayload(
                 **{
                     "request_id": "chatcmpl-34df56d5-4807-45c1-bb99-61e52586b802",
-                    "accounting_path": "legacy",
+                    "accounting_path": "ledger",
                     "session_id": "1234567890",
                     "call_type": "acompletion",
                     "api_key": "",
@@ -3861,10 +3861,16 @@ class TestSpendLogsPayload:
 
             expected_payload_with_pod_routing: Final[SpendLogsPayload] = {
                 **expected_payload,
-                "metadata": expected_payload["metadata"].replace(
-                    '"routing_decision": null, ',
-                    '"routing_decision": null, "kubernetes_pod_routing": null, ',
-                ),
+                "metadata": json.dumps({
+                    **json.loads(expected_payload["metadata"]),
+                    "kubernetes_pod_routing": None,
+                    "accounting_entities": {
+                        "api_key": None, "user": None, "end_user": "test_user_1", "team_id": None,
+                        "organization_id": None, "project_id": None, "agent_id": None, "proxy_budget_name": None,
+                    },
+                    "accounting_savings": {"compression": 0.0, "prompt_caching": 0.0, "gateway_injected_caching": 0.0, "autorouter": 0.0},
+                    "accounting_model_access_groups": [], "accounting_windows": [],
+                }),
             }
             differences = _compare_nested_dicts(
                 payload,
