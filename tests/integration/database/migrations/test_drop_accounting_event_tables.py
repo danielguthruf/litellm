@@ -114,3 +114,16 @@ def test_startup_refuses_unsettled_deliveries_before_prisma_records_anything(
         is None
     )
     assert sorted(_remaining(connection, name)) == sorted(_OLD_OBJECTS)
+
+
+def test_proxy_schema_push_refuses_unsettled_deliveries_before_running_prisma(
+    schema: tuple[str, psycopg.Connection[tuple[object, ...]]],
+) -> None:
+    from litellm.proxy.db.prisma_client import PrismaManager
+
+    name, connection = schema
+    _deliver(connection, "parked")
+
+    with pytest.raises(RuntimeError, match="pending or parked rows"):
+        PrismaManager.setup_database(use_migrate=False)
+    assert sorted(_remaining(connection, name)) == sorted(_OLD_OBJECTS)

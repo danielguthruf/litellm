@@ -13,7 +13,6 @@ from pydantic import TypeAdapter
 
 Schema = Mapping[str, Mapping[str, str]]
 MODELS: Final = re.compile(r"^[ \t]*model\s+(\w+)\s*\{(.*?)^[ \t]*\}", re.MULTILINE | re.DOTALL)
-# Scaffolding no release ever wrote (v1.109.0-dev.2 shipped the tables only). The drop migration refuses unsettled rows
 REMOVABLE_MODELS: Final = frozenset({"LiteLLM_AccountingDelivery", "LiteLLM_AccountingEvent"})
 
 
