@@ -1130,12 +1130,15 @@ if MCP_AVAILABLE:
         )
         from litellm.proxy.proxy_server import prisma_client
 
-        access_groups: Final = set()
+        access_groups: Final = set[str]()
 
         # Get from config-loaded servers
         for server in global_mcp_server_manager.config_mcp_servers.values():
             if server.access_groups:
                 access_groups.update(server.access_groups)
+
+        for server in global_mcp_server_manager.catalog.config_registrations.values():
+            access_groups.update(server.mcp_access_groups)
 
         # Get from DB
         if prisma_client is not None:
@@ -1221,11 +1224,17 @@ if MCP_AVAILABLE:
         return "restricted"
 
     def _redacted_server_tables(server_ids: Iterable[str]) -> list[LiteLLM_MCPServerTable]:
-        registered: Final = (global_mcp_server_manager.get_mcp_server_by_id(server_id) for server_id in server_ids)
+        selected_ids: Final = frozenset(server_ids)
+        registered: Final = (global_mcp_server_manager.get_mcp_server_by_id(server_id) for server_id in selected_ids)
         tables: Final = [
             global_mcp_server_manager.build_mcp_server_table(server) for server in registered if server is not None
         ]
-        return _redact_mcp_credentials_list(tables)
+        provider_tables: Final = [
+            server
+            for server_id, server in global_mcp_server_manager.catalog.provider_registrations().items()
+            if server_id in selected_ids
+        ]
+        return _redact_mcp_credentials_list(tables + provider_tables)
 
     async def _granted_mcp_server_ids(
         object_permission_id: str | None,
@@ -1357,7 +1366,7 @@ if MCP_AVAILABLE:
             if view_providers
             or getattr(server, "execution_mode", MCPExecutionMode.litellm) != MCPExecutionMode.provider
         ]
-        if view_all:
+        if view_all and len(visible_inventory) == len(inventory):
             return visible_inventory
 
         provider_servers: Final = [
@@ -1365,13 +1374,21 @@ if MCP_AVAILABLE:
             for server in visible_inventory
             if getattr(server, "execution_mode", MCPExecutionMode.litellm) == MCPExecutionMode.provider
         ]
+        initial_servers: Final = visible_inventory if view_all else provider_servers
         allowed_by_context: Final = [
             await global_mcp_server_manager.get_all_allowed_mcp_servers(user_api_key_auth=auth_context)
             for auth_context in await build_effective_auth_contexts(user_api_key_dict)
         ]
         aggregated: Final = {
             server.server_id: server
-            for server in (*chain.from_iterable(reversed(allowed_by_context)), *provider_servers)
+            for server in (
+                *(
+                    server
+                    for server in chain.from_iterable(reversed(allowed_by_context))
+                    if not view_all or server.execution_mode == MCPExecutionMode.provider
+                ),
+                *initial_servers,
+            )
         }
         return list(aggregated.values())
 
@@ -1506,7 +1523,9 @@ if MCP_AVAILABLE:
         if connected_app_view is True and is_ui_session_credential(user_api_key_dict):
             reachable_ids: Final = await _connected_app_reachable_server_ids(user_api_key_dict)
             for server in redacted_mcp_servers:
-                server.connected_app_reachable = server.server_id in reachable_ids
+                server.connected_app_reachable = (
+                    server.execution_mode == MCPExecutionMode.litellm and server.server_id in reachable_ids
+                )
 
         # Annotate has_user_credential for BYOK servers (single batched query)
         from litellm.proxy.proxy_server import prisma_client as _byok_prisma_client
@@ -1979,13 +1998,12 @@ if MCP_AVAILABLE:
         is_admin_view: Final = user_api_key_has_admin_view(user_api_key_dict)
         is_restricted_virtual_key: Final = _is_restricted_virtual_key_request(user_api_key_dict)
         snapshot: Final = global_mcp_server_manager.catalog.current()
-        config_match: Final = (
+        provider_match: Final = (
             next(
                 (
                     server
                     for server in snapshot.management_servers.values()
-                    if server.is_config
-                    and server.execution_mode == MCPExecutionMode.provider
+                    if server.execution_mode == MCPExecutionMode.provider
                     and server_id in (server.server_id, server.server_name, server.alias)
                 ),
                 None,
@@ -1994,10 +2012,10 @@ if MCP_AVAILABLE:
             else None
         )
         resolved: Final = (
-            ResolvedMCPServer(table=config_match, runtime=None, source="registry")
-            if config_match is not None
+            ResolvedMCPServer(table=provider_match, runtime=None, source="registry")
+            if provider_match is not None and provider_match.is_config
             else await resolve_mcp_server(
-                server_id,
+                provider_match.server_id if provider_match is not None else server_id,
                 manager=global_mcp_server_manager,
                 db_lookup=lambda sid: get_mcp_server(
                     get_prisma_client_or_throw("Database not connected. Connect a database to your proxy"),
