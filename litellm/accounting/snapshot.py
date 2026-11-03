@@ -112,11 +112,26 @@ def build_accounting_payload(
             payload, entities=entities, model_access_groups=model_access_groups, windows=windows, router=router
         )
     )
-    return {
-        **{
-            key: value.isoformat() if isinstance(value, datetime) else value
-            for key, value in payload.items()
-            if key in _ACCOUNTING_FIELDS
-        },
-        "metadata": {key: value for key, value in metadata.items() if key in ACCOUNTING_METADATA_FIELDS},
-    }
+    return _FIELDS.validate_python(
+        _without_nul(
+            {
+                **{
+                    key: value.isoformat() if isinstance(value, datetime) else value
+                    for key, value in payload.items()
+                    if key in _ACCOUNTING_FIELDS
+                },
+                "metadata": {key: value for key, value in metadata.items() if key in ACCOUNTING_METADATA_FIELDS},
+            }
+        )
+    )
+
+
+def _without_nul(value: object) -> object:
+    """Postgres jsonb rejects NUL, and a rejected payload would lose the charge it carries."""
+    if isinstance(value, str):
+        return value.replace("\x00", "")
+    if isinstance(value, Mapping):
+        return {_without_nul(key): _without_nul(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_without_nul(item) for item in value]
+    return value
