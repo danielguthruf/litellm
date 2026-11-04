@@ -68,6 +68,7 @@ if TYPE_CHECKING:
     from litellm.proxy.db.autorouter_session_rollup import AutoRouterTurnTransaction
     from litellm.proxy.db.baseline_accounting import DailyBaselineAttribution
     from litellm.proxy.utils import PrismaClient, ProxyLogging
+    from litellm.repositories.table_repositories import SpendLogsRepository
     from litellm.router import Router
 else:
     PrismaClient = Any
@@ -662,24 +663,16 @@ class DBSpendUpdateWriter:
                         _batch_cost_row_to_write(payload, disable_spend_logs), configured_spend_logs_metadata_fields()
                     ),
                 )
-            existing: Final = await repository.table.find_unique(where={"request_id": request_id})
-            if (
-                existing is not None
-                and existing.call_type == CallTypes.aretrieve_batch.value
-                and existing.status == "success"
-                and existing.spend == 0
-                and getattr(existing, "accounting_path", None) != "ledger"
-            ):
-                return await self._take_over_uncharged_batch_cost_row(
-                    payload,
-                    prisma_client,
-                    spend_log_row_with_retained_metadata(
-                        _batch_cost_row_to_write(payload, disable_spend_logs), configured_spend_logs_metadata_fields()
-                    ),
-                )
             row: Final = spend_log_row_with_retained_metadata(
                 _batch_cost_row_to_write(payload, disable_spend_logs), configured_spend_logs_metadata_fields()
             )
+            existing: Final = await repository.table.find_unique(where={"request_id": request_id})
+            if existing is not None and not (
+                existing.call_type == CallTypes.aretrieve_batch.value and existing.status == "success"
+            ):
+                return await self._charge_batch_without_its_own_row(repository, prisma_client.jsonify_object(row))
+            if existing is not None and existing.spend == 0 and getattr(existing, "accounting_path", None) != "ledger":
+                return await self._take_over_uncharged_batch_cost_row(payload, prisma_client, row)
             claimed: Final = await repository.insert_with_deliveries([prisma_client.jsonify_object(row)])
             return claimed == 1 or await self._take_over_uncharged_batch_cost_row(payload, prisma_client, row)
         except Exception as error:  # noqa: BLE001  # retry buffered work after database failures
@@ -689,6 +682,17 @@ class DBSpendUpdateWriter:
                 payload=prisma_client.jsonify_object(queued), prisma_client=prisma_client
             )
             return True
+
+    @staticmethod
+    async def _charge_batch_without_its_own_row(repository: "SpendLogsRepository", row: Mapping[str, object]) -> bool:
+        """Another request's spend log already holds this batch's id, so the receipt alone carries the charge."""
+        from litellm.proxy.utils import accounting_only_spend_log
+
+        verbose_proxy_logger.warning(
+            "Spend row %s belongs to another request, so this batch's cost is charged without a row of its own",
+            single_log_line(str(row["request_id"])),
+        )
+        return await repository.insert_with_deliveries([accounting_only_spend_log(row)]) == 1
 
     async def _take_over_uncharged_batch_cost_row(
         self, payload: SpendLogsPayload, prisma_client: "PrismaClient", row: Mapping[str, object]

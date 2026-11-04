@@ -706,6 +706,36 @@ async def test_failed_legacy_takeover_rolls_back_its_delivery(delivery_database,
     assert delivery_database.execute('SELECT COUNT(*) FROM "LiteLLM_SpendLogDelivery"').fetchone() == (0,)
 
 
+@pytest.mark.parametrize(("call_type", "status"), [("aembedding", "success"), ("aretrieve_batch", "failure")])
+@pytest.mark.asyncio
+async def test_batch_is_charged_once_when_another_request_holds_its_spend_log_id(
+    delivery_database, delivery_client, call_type, status
+):
+    from types import SimpleNamespace
+
+    from litellm.proxy.db.db_spend_update_writer import DBSpendUpdateWriter
+    from litellm.proxy.utils import jsonify_object
+
+    foreign = {**_row("planted_batch_cost", path="legacy"), "call_type": call_type, "status": status, "spend": 0.0}
+    _insert(delivery_database, (foreign,))
+    batch = _with_payload(
+        {**_row("planted_batch_cost"), "call_type": "aretrieve_batch", "status": "success", "spend": 1.0}
+    )
+    client = SimpleNamespace(db=delivery_client, writer_db=delivery_client, jsonify_object=jsonify_object)
+    writer = DBSpendUpdateWriter()
+
+    first = await writer._claim_batch_cost_spend_log(payload=batch, prisma_client=client, disable_spend_logs=False)
+    second = await writer._claim_batch_cost_spend_log(payload=batch, prisma_client=client, disable_spend_logs=False)
+
+    assert (first, second) == (True, False)
+    assert delivery_database.execute(
+        'SELECT delivery_id, is_batch, accounting_payload->>\'spend\' FROM "LiteLLM_SpendLogDelivery"'
+    ).fetchall() == [("planted_batch_cost", True, "1.0")]
+    assert delivery_database.execute('SELECT call_type, spend FROM "LiteLLM_SpendLogs"').fetchall() == [
+        (call_type, 0.0)
+    ]
+
+
 @pytest.mark.parametrize("disabled_logs", [False, True])
 @pytest.mark.asyncio
 async def test_buffered_batch_charge_takes_over_its_zero_cost_receipt(
