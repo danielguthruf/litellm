@@ -47,7 +47,7 @@
       ],
       "LiteLLM_BudgetWindowSpend": [
         {
-          "entity_id": "virtual_key_spend:key:ledger-test:1d",
+          "entity_id": "virtual_key_spend:2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683:ledger-test:1d",
           "entity_type": "model_max_budget",
           "spend": 0,
           "window_duration": "1d",
@@ -341,7 +341,7 @@
           "window_start": "2026-11-03T00:00:00"
         },
         {
-          "entity_id": "virtual_key_spend:key:ledger-test:1d",
+          "entity_id": "virtual_key_spend:2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683:ledger-test:1d",
           "entity_type": "model_max_budget",
           "spend": 0.25,
           "window_duration": "1d",
@@ -635,7 +635,7 @@
           "window_start": "2026-11-03T00:00:00"
         },
         {
-          "entity_id": "virtual_key_spend:key:ledger-test:1d",
+          "entity_id": "virtual_key_spend:2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683:ledger-test:1d",
           "entity_type": "model_max_budget",
           "spend": 0.25,
           "window_duration": "1d",
@@ -1503,7 +1503,7 @@
           "window_start": "2026-11-03T00:00:00"
         },
         {
-          "entity_id": "virtual_key_spend:key:ledger-test:1d",
+          "entity_id": "virtual_key_spend:2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683:ledger-test:1d",
           "entity_type": "model_max_budget",
           "spend": 0.25,
           "window_duration": "1d",
@@ -1797,7 +1797,7 @@
           "window_start": "2026-11-03T00:00:00"
         },
         {
-          "entity_id": "virtual_key_spend:key:ledger-test:1d",
+          "entity_id": "virtual_key_spend:2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683:ledger-test:1d",
           "entity_type": "model_max_budget",
           "spend": 0.25,
           "window_duration": "1d",
@@ -2065,7 +2065,7 @@
           "window_start": "2026-11-03T00:00:00"
         },
         {
-          "entity_id": "virtual_key_spend:key:ledger-test:1d",
+          "entity_id": "virtual_key_spend:2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683:ledger-test:1d",
           "entity_type": "model_max_budget",
           "spend": 0.25,
           "window_duration": "1d",
@@ -2359,7 +2359,7 @@
           "window_start": "2026-11-03T00:00:00"
         },
         {
-          "entity_id": "virtual_key_spend:key:ledger-test:1d",
+          "entity_id": "virtual_key_spend:2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683:ledger-test:1d",
           "entity_type": "model_max_budget",
           "spend": 0.25,
           "window_duration": "1d",
@@ -2639,7 +2639,7 @@
           "window_start": "2026-11-03T00:00:00"
         },
         {
-          "entity_id": "virtual_key_spend:key:ledger-test:1d",
+          "entity_id": "virtual_key_spend:2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683:ledger-test:1d",
           "entity_type": "model_max_budget",
           "spend": 0.25,
           "window_duration": "1d",
@@ -2933,7 +2933,7 @@
           "window_start": "2026-11-03T00:00:00"
         },
         {
-          "entity_id": "virtual_key_spend:key:ledger-test:1d",
+          "entity_id": "virtual_key_spend:2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683:ledger-test:1d",
           "entity_type": "model_max_budget",
           "spend": 0.25,
           "window_duration": "1d",
@@ -3231,7 +3231,7 @@
           "window_start": "2026-11-03T00:00:00"
         },
         {
-          "entity_id": "virtual_key_spend:key:ledger-test:1d",
+          "entity_id": "virtual_key_spend:2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683:ledger-test:1d",
           "entity_type": "model_max_budget",
           "spend": 0.25,
           "window_duration": "1d",
@@ -3525,7 +3525,7 @@
           "window_start": "2026-11-03T00:00:00"
         },
         {
-          "entity_id": "virtual_key_spend:key:ledger-test:1d",
+          "entity_id": "virtual_key_spend:2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683:ledger-test:1d",
           "entity_type": "model_max_budget",
           "spend": 0.25,
           "window_duration": "1d",
