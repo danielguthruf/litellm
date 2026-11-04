@@ -648,7 +648,7 @@ class ProxyExtrasDBManager:
         connect: LensCheckConnect | None,
         query: "Callable[[psycopg.Connection[tuple[object, ...]], str], bool]",
     ) -> bool:
-        database_url: Final = os.environ.get("DIRECT_URL") or os.environ.get("DATABASE_URL")
+        database_url: Final = os.environ.get("DATABASE_URL")
         if not database_url:
             return False
         try:
@@ -656,9 +656,10 @@ class ProxyExtrasDBManager:
         except ImportError as exc:
             raise RuntimeError(f"Install psycopg to verify {purpose} before prisma db push.") from exc
         open_connection: Final = connect if connect is not None else psycopg.connect
+        connection_url: Final = os.environ.get("DIRECT_URL") or database_url
         try:
             with open_connection(
-                ProxyExtrasDBManager._strip_prisma_query_params(database_url), connect_timeout=10, autocommit=True
+                ProxyExtrasDBManager._strip_prisma_query_params(connection_url), connect_timeout=10, autocommit=True
             ) as connection:
                 return query(connection, ProxyExtrasDBManager._prisma_schema_param(database_url) or "public")
         except psycopg.Error as exc:

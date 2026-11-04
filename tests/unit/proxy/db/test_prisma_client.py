@@ -282,6 +282,7 @@ class _Rows:
 class _Connection:
     def __init__(self, table_exists: bool, unsettled: bool) -> None:
         self.answers = iter(((1,) if table_exists else None, (1,) if unsettled else None))
+        self.schemas: list[str] = []
 
     def __enter__(self) -> "_Connection":
         return self
@@ -289,7 +290,9 @@ class _Connection:
     def __exit__(self, *_: object) -> None:
         return None
 
-    def execute(self, query: object, params: object = None) -> _Rows:
+    def execute(self, query: object, params: tuple[str, ...] | None = None) -> _Rows:
+        if params is not None:
+            self.schemas.append(params[0])
         return _Rows(next(self.answers))
 
 
@@ -314,19 +317,42 @@ def test_db_push_refuses_only_while_old_accounting_rows_are_unsettled(
         PrismaManager.raise_if_accounting_deliveries_unsettled(connect)
 
 
-def test_db_push_checks_old_accounting_rows_over_the_direct_url(monkeypatch: pytest.MonkeyPatch) -> None:
+_URL_CASES: Final = (
+    ("postgresql://u:p@db:5432/litellm", None, "db", "public"),
+    ("postgresql://u:p@db:5432/litellm?schema=tenant", None, "db", "tenant"),
+    ("postgresql://u:p@db:5432/litellm", "postgresql://u:p@direct:5432/litellm", "direct", "public"),
+    ("postgresql://u:p@db:5432/litellm?schema=tenant", "postgresql://u:p@direct:5432/litellm", "direct", "tenant"),
+    ("postgresql://u:p@db:5432/litellm", "postgresql://u:p@direct:5432/litellm?schema=other", "direct", "public"),
+    (
+        "postgresql://u:p@db:5432/litellm?schema=tenant",
+        "postgresql://u:p@direct:5432/litellm?schema=other",
+        "direct",
+        "tenant",
+    ),
+)
+
+
+@pytest.mark.parametrize(("database_url", "direct_url", "host", "schema"), _URL_CASES)
+def test_db_push_checks_the_schema_prisma_migrates_over_the_direct_connection(
+    monkeypatch: pytest.MonkeyPatch, database_url: str, direct_url: str | None, host: str, schema: str
+) -> None:
     from litellm.proxy.db.prisma_client import PrismaManager
 
-    monkeypatch.setenv("DATABASE_URL", "postgresql://u:p@pooler:6543/litellm")
-    monkeypatch.setenv("DIRECT_URL", "postgresql://u:p@primary:5432/litellm")
-    seen: Final[list[str]] = []
+    monkeypatch.setenv("DATABASE_URL", database_url)
+    if direct_url is None:
+        monkeypatch.delenv("DIRECT_URL", raising=False)
+    else:
+        monkeypatch.setenv("DIRECT_URL", direct_url)
+    connection: Final = _Connection(table_exists=False, unsettled=False)
+    hosts: Final[list[str]] = []
 
     def connect(conninfo: str, *, connect_timeout: int, autocommit: bool) -> _Connection:
-        seen.append(conninfo)
-        return _Connection(table_exists=False, unsettled=False)
+        hosts.append(conninfo)
+        return connection
 
     PrismaManager.raise_if_accounting_deliveries_unsettled(connect)
-    assert len(seen) == 1 and "primary" in seen[0]
+    assert len(hosts) == 1 and f"@{host}:" in hosts[0]
+    assert connection.schemas == [schema]
 
 
 def test_db_push_refuses_when_it_cannot_check_old_accounting_rows(monkeypatch: pytest.MonkeyPatch) -> None:

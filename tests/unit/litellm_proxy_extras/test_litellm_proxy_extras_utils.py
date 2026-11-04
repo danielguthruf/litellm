@@ -2377,33 +2377,67 @@ class TestMigrateDeployRunsUnderTheCoordinatorLock:
         assert events == ["lock", "deploy", "unlock", "lock", "rollback", "unlock", "lock", "deploy", "unlock"]
 
 
+_URL_CASES: Final = (
+    ("postgresql://u:p@db:5432/litellm", None, "db", "public"),
+    ("postgresql://u:p@db:5432/litellm?schema=tenant", None, "db", "tenant"),
+    ("postgresql://u:p@db:5432/litellm", "postgresql://u:p@direct:5432/litellm", "direct", "public"),
+    ("postgresql://u:p@db:5432/litellm?schema=tenant", "postgresql://u:p@direct:5432/litellm", "direct", "tenant"),
+    ("postgresql://u:p@db:5432/litellm", "postgresql://u:p@direct:5432/litellm?schema=other", "direct", "public"),
+    (
+        "postgresql://u:p@db:5432/litellm?schema=tenant",
+        "postgresql://u:p@direct:5432/litellm?schema=other",
+        "direct",
+        "tenant",
+    ),
+)
+
+
 class TestAccountingDeliveryUpgradeGuard:
-    def test_the_check_connects_over_the_direct_url(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        import psycopg
+    @pytest.mark.parametrize(("database_url", "direct_url", "host", "schema"), _URL_CASES)
+    def test_the_check_reads_the_schema_prisma_migrates_over_the_direct_connection(
+        self, monkeypatch: pytest.MonkeyPatch, database_url: str, direct_url: str | None, host: str, schema: str
+    ) -> None:
+        monkeypatch.setenv("DATABASE_URL", database_url)
+        if direct_url is None:
+            monkeypatch.delenv("DIRECT_URL", raising=False)
+        else:
+            monkeypatch.setenv("DIRECT_URL", direct_url)
+        seen: Final[list[tuple[str, object]]] = []
 
-        monkeypatch.setenv("DATABASE_URL", "postgresql://litellm:hunter2@pooler:6543/litellm")
-        monkeypatch.setenv("DIRECT_URL", "postgresql://litellm:hunter2@primary:5432/litellm")
-        seen: Final[list[str]] = []
+        class _Connection:
+            def __enter__(self) -> "_Connection":
+                return self
 
-        def refuse(conninfo: str, *, connect_timeout: int, autocommit: bool) -> NoReturn:
-            seen.append(conninfo)
-            raise psycopg.OperationalError("connection refused")
+            def __exit__(self, *_: object) -> None:
+                return None
 
-        with pytest.raises(RuntimeError, match="Cannot verify accounting deliveries"):
-            ProxyExtrasDBManager.raise_if_accounting_deliveries_unsettled(connect=refuse)
-        assert len(seen) == 1 and "primary" in seen[0]
+            def execute(self, query: object, params: tuple[str, ...] | None = None) -> "_Connection":
+                seen.append(("schema", params[0] if params else None))
+                return self
 
-    def test_migrate_mode_refuses_when_it_cannot_check_old_accounting_rows(
+            def fetchone(self) -> None:
+                return None
+
+        def connect(conninfo: str, *, connect_timeout: int, autocommit: bool) -> _Connection:
+            seen.append(("host", conninfo))
+            return _Connection()
+
+        ProxyExtrasDBManager.raise_if_accounting_deliveries_unsettled(connect=connect)
+        assert seen[0][0] == "host" and f"@{host}:" in str(seen[0][1])
+        assert seen[1] == ("schema", schema)
+
+    def test_migrations_do_not_start_while_old_accounting_rows_are_unverified(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        monkeypatch.setenv("DATABASE_URL", "postgresql://litellm:hunter2@127.0.0.1:1/litellm")
+        monkeypatch.delenv("DATABASE_URL", raising=False)
+
+        def refuse() -> None:
+            raise RuntimeError("Cannot verify accounting deliveries")
 
         with pytest.raises(RuntimeError, match="Cannot verify accounting deliveries"):
-            ProxyExtrasDBManager._run_migrations(use_migrate=True, use_v2_resolver=True)
+            ProxyExtrasDBManager._run_migrations(use_migrate=True, use_v2_resolver=True, verify_settled=refuse)
 
-    def test_an_unreachable_database_blocks_every_schema_upgrade(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_an_unreachable_database_blocks_every_schema_upgrade(self, monkeypatch: pytest.MonkeyPatch) -> None:
         import psycopg
 
         monkeypatch.setenv("DATABASE_URL", "postgresql://litellm:hunter2@localhost:5432/litellm")

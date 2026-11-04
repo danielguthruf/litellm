@@ -1038,9 +1038,10 @@ class PrismaManager:
         """`prisma db push` drops LiteLLM_AccountingDelivery from litellm's own schema whatever
         litellm-proxy-extras version is installed, so the push refuses while that table still holds
         unsettled rows, and refuses when it cannot check."""
-        database_url: Final = os.environ.get("DIRECT_URL") or os.environ.get("DATABASE_URL")
+        database_url: Final = os.environ.get("DATABASE_URL")
         if not database_url:
             return
+        connection_url: Final = os.environ.get("DIRECT_URL") or database_url
         import psycopg
         from litellm_proxy_extras.utils import (
             ProxyExtrasDBManager,  # pyright: ignore[reportUnknownVariableType]  # optional install
@@ -1048,9 +1049,9 @@ class PrismaManager:
         from psycopg import sql
 
         schema_param: Final[object] = ProxyExtrasDBManager._prisma_schema_param(database_url)  # pyright: ignore[reportPrivateUsage, reportUnknownMemberType, reportUnknownVariableType]  # Prisma URL parsing shared with the published extras
-        conninfo_param: Final[object] = ProxyExtrasDBManager._strip_prisma_query_params(database_url)  # pyright: ignore[reportPrivateUsage, reportUnknownMemberType, reportUnknownVariableType]  # Prisma URL parsing shared with the published extras
+        conninfo_param: Final[object] = ProxyExtrasDBManager._strip_prisma_query_params(connection_url)  # pyright: ignore[reportPrivateUsage, reportUnknownMemberType, reportUnknownVariableType]  # Prisma URL parsing shared with the published extras
         schema: Final = schema_param if isinstance(schema_param, str) and schema_param else "public"
-        conninfo: Final = conninfo_param if isinstance(conninfo_param, str) else database_url
+        conninfo: Final = conninfo_param if isinstance(conninfo_param, str) else connection_url
         try:
             with (connect or psycopg.connect)(conninfo, connect_timeout=10, autocommit=True) as connection:
                 table: Final = connection.execute(
