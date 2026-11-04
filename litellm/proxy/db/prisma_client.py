@@ -1085,7 +1085,7 @@ class PrismaManager:
                     from litellm_proxy_extras.utils import ProxyExtrasDBManager
 
                     ProxyExtrasDBManager.raise_if_lens_rename_pending()
-                    ProxyExtrasDBManager.raise_if_accounting_deliveries_unsettled()
+                    ProxyExtrasDBManager.raise_if_accounting_deliveries_unsettled()  # pyright: ignore[reportUnknownMemberType]  # added in the unreleased litellm-proxy-extras
                     PrismaManager._raise_if_partitioned_spend_logs()
                     run_prisma(
                         [
