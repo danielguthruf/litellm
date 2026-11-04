@@ -768,3 +768,33 @@ async def test_buffered_batch_charge_takes_over_its_zero_cost_receipt(
     assert delivery_database.execute(
         'SELECT state::text, accounting_payload->>\'spend\' FROM "LiteLLM_SpendLogDelivery"'
     ).fetchall() == [("pending", "1.0")]
+
+
+@pytest.mark.parametrize("disable_spend_logs", [False, True])
+@pytest.mark.asyncio
+async def test_already_charged_batch_is_not_charged_again(delivery_database, delivery_client, disable_spend_logs):
+    from types import SimpleNamespace
+
+    from litellm.proxy.db.db_spend_update_writer import DBSpendUpdateWriter
+    from litellm.proxy.utils import jsonify_object
+
+    charged = {**_row("paid_batch_cost", path="legacy"), "call_type": "aretrieve_batch", "status": "success"}
+    _insert(delivery_database, (charged,))
+    retrieve = _with_payload({**_row("paid_batch_cost"), "call_type": "aretrieve_batch", "status": "success"})
+
+    async def find_unique(where):
+        found = delivery_database.execute(
+            'SELECT call_type, status, spend FROM "LiteLLM_SpendLogs" WHERE request_id = %s', (where["request_id"],)
+        ).fetchone()
+        return None if found is None else SimpleNamespace(call_type=found[0], status=found[1], spend=found[2])
+
+    client = SimpleNamespace(
+        db=SimpleNamespace(litellm_spendlogs=SimpleNamespace(find_unique=find_unique)),
+        writer_db=delivery_client,
+        jsonify_object=jsonify_object,
+    )
+
+    assert not await DBSpendUpdateWriter()._claim_batch_cost_spend_log(
+        payload=retrieve, prisma_client=client, disable_spend_logs=disable_spend_logs
+    )
+    assert delivery_database.execute('SELECT COUNT(*) FROM "LiteLLM_SpendLogDelivery"').fetchone() == (0,)

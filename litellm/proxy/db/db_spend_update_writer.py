@@ -671,7 +671,9 @@ class DBSpendUpdateWriter:
                 existing.call_type == CallTypes.aretrieve_batch.value and existing.status == "success"
             ):
                 return await self._charge_batch_without_its_own_row(repository, prisma_client.jsonify_object(row))
-            if existing is not None and existing.spend == 0 and getattr(existing, "accounting_path", None) != "ledger":
+            if existing is not None and existing.spend > 0:
+                return False
+            if existing is not None and getattr(existing, "accounting_path", None) != "ledger":
                 return await self._take_over_uncharged_batch_cost_row(payload, prisma_client, row)
             claimed: Final = await repository.insert_with_deliveries([prisma_client.jsonify_object(row)])
             return claimed == 1 or await self._take_over_uncharged_batch_cost_row(payload, prisma_client, row)
