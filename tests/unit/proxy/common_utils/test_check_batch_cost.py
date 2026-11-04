@@ -3386,7 +3386,10 @@ class TestMultiPodBatchCostClaim:
             database_url="postgresql://unused:unused@localhost:5432/unused", proxy_logging_obj=dependency
         )
         async def inserted_rows(statement, serialized):
-            return [{"request_id": value["request_id"]} for value in json.loads(serialized)]
+            return [
+                {"request_id": value["request_id"], "delivery_id": value.get("delivery_id", value["request_id"])}
+                for value in json.loads(serialized)
+            ]
 
         insert_spend_rows: Final = AsyncMock(side_effect=inserted_rows)
         transaction: Final = MagicMock(query_raw=insert_spend_rows)
