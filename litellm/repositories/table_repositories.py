@@ -234,7 +234,7 @@ class SpendLogsRepository(PrismaTableRepository["prisma_models.LiteLLM_SpendLogs
         taken_over: Final = tuple(str(row["request_id"]) for row in chain.from_iterable(updated))
         if taken_over:
             await transaction.execute_raw(
-                'UPDATE "LiteLLM_SpendLogDelivery" SET legacy_takeover = true WHERE request_id = ANY($1::text[])',
+                'UPDATE "LiteLLM_SpendLogDelivery" SET legacy_takeover = true WHERE delivery_id = ANY($1::text[])',
                 taken_over,
             )
         return frozenset(taken_over)
@@ -293,21 +293,19 @@ class SpendLogsRepository(PrismaTableRepository["prisma_models.LiteLLM_SpendLogs
         if not isinstance(spend, (int, float)) or spend <= 0:
             return BatchTakeover(False, "legacy")
         inserted: Final = await transaction.query_raw(
-            'INSERT INTO "LiteLLM_SpendLogDelivery" (request_id, accounting_payload, is_batch, legacy_takeover) '
-            "VALUES ($1, $2::jsonb, true, true) ON CONFLICT (request_id) DO NOTHING RETURNING request_id",
+            'INSERT INTO "LiteLLM_SpendLogDelivery" (delivery_id, request_id, accounting_payload, is_batch, legacy_takeover) '
+            "VALUES ($1, $1, $2::jsonb, true, true) ON CONFLICT (delivery_id) DO NOTHING RETURNING delivery_id",
             row["request_id"],
             safe_dumps(payload, non_finite_as_null=True),
         )
         if not inserted:
             return BatchTakeover(False, "legacy")
-        local_row: Final = {
-            key: value for key, value in row.items() if key not in {"accounting_payload", "accounting_log_disabled"}
-        }
+        local_row: Final = {key: value for key, value in row.items() if key not in _ACCOUNTING_ONLY_FIELDS}
         async with db_span("update", "LiteLLM_SpendLogs"):
             changed: Final = await transaction.query_raw(*spend_log_takeover_statement(local_row, legacy_only=True))
         if not changed:
             await transaction.execute_raw(
-                'DELETE FROM "LiteLLM_SpendLogDelivery" WHERE request_id = $1', row["request_id"]
+                'DELETE FROM "LiteLLM_SpendLogDelivery" WHERE delivery_id = $1', row["request_id"]
             )
         return BatchTakeover(bool(changed), "legacy")
 
