@@ -20,7 +20,6 @@ from litellm.proxy.db.prisma_client import (
     _TrackedPrismaEngine,
     should_update_prisma_schema,
 )
-from tests.unit.proxy.db.conftest import FakePrismaCli
 
 
 @pytest.fixture(autouse=True)
@@ -272,33 +271,61 @@ def test_db_push_proceeds_when_spend_logs_is_not_partitioned(monkeypatch, fake_p
     assert fake_prisma_cli.calls == [DB_PUSH_ARGV, ENVIRONMENT_VARIABLES_REVISION_TRIGGER_ARGV]
 
 
-def test_db_push_runs_with_a_proxy_extras_release_that_predates_the_unsettled_check(
-    monkeypatch: pytest.MonkeyPatch, fake_prisma_cli: FakePrismaCli, unset_database_url: None
+class _Rows:
+    def __init__(self, row: tuple[int, ...] | None) -> None:
+        self.row = row
+
+    def fetchone(self) -> tuple[int, ...] | None:
+        return self.row
+
+
+class _Connection:
+    def __init__(self, table_exists: bool, unsettled: bool) -> None:
+        self.answers = iter(((1,) if table_exists else None, (1,) if unsettled else None))
+
+    def __enter__(self) -> "_Connection":
+        return self
+
+    def __exit__(self, *_: object) -> None:
+        return None
+
+    def execute(self, query: object, params: object = None) -> _Rows:
+        return _Rows(next(self.answers))
+
+
+@pytest.mark.parametrize(
+    ("table_exists", "unsettled", "refused"), [(False, False, False), (True, False, False), (True, True, True)]
+)
+def test_db_push_refuses_only_while_old_accounting_rows_are_unsettled(
+    monkeypatch: pytest.MonkeyPatch, table_exists: bool, unsettled: bool, refused: bool
 ) -> None:
     from litellm.proxy.db.prisma_client import PrismaManager
-    from litellm_proxy_extras.utils import ProxyExtrasDBManager
 
-    monkeypatch.setattr(ProxyExtrasDBManager, "spend_logs_is_partitioned", staticmethod(lambda: False))
-    monkeypatch.delattr(ProxyExtrasDBManager, "raise_if_accounting_deliveries_unsettled")
+    monkeypatch.setenv("DATABASE_URL", "postgresql://u:p@localhost:5432/litellm?connection_limit=5")
 
-    assert PrismaManager.setup_database(use_migrate=False) is True
-    assert fake_prisma_cli.calls == [DB_PUSH_ARGV, ENVIRONMENT_VARIABLES_REVISION_TRIGGER_ARGV]
+    def connect(conninfo: str, *, connect_timeout: int, autocommit: bool) -> _Connection:
+        assert "connection_limit" not in conninfo
+        return _Connection(table_exists, unsettled)
+
+    if refused:
+        with pytest.raises(RuntimeError, match="pending or parked"):
+            PrismaManager.raise_if_accounting_deliveries_unsettled(connect)
+    else:
+        PrismaManager.raise_if_accounting_deliveries_unsettled(connect)
 
 
-def test_db_push_stops_on_unsettled_accounting_rows(
-    monkeypatch: pytest.MonkeyPatch, fake_prisma_cli: FakePrismaCli, unset_database_url: None
-) -> None:
+def test_db_push_refuses_when_it_cannot_check_old_accounting_rows(monkeypatch: pytest.MonkeyPatch) -> None:
+    import psycopg
+
     from litellm.proxy.db.prisma_client import PrismaManager
-    from litellm_proxy_extras.utils import ProxyExtrasDBManager
 
-    def refuse() -> None:
-        raise RuntimeError("unsettled")
+    monkeypatch.setenv("DATABASE_URL", "postgresql://u:p@localhost:5432/litellm")
 
-    monkeypatch.setattr(ProxyExtrasDBManager, "raise_if_accounting_deliveries_unsettled", staticmethod(refuse))
+    def connect(conninfo: str, *, connect_timeout: int, autocommit: bool) -> _Connection:
+        raise psycopg.OperationalError("connection refused")
 
-    with pytest.raises(RuntimeError, match="unsettled"):
-        PrismaManager.setup_database(use_migrate=False)
-    assert fake_prisma_cli.calls == []
+    with pytest.raises(RuntimeError, match="Cannot verify"):
+        PrismaManager.raise_if_accounting_deliveries_unsettled(connect)
 
 
 def _entra_jwt(expires_in_seconds: int) -> str:

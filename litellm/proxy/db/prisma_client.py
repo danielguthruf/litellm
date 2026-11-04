@@ -35,8 +35,18 @@ from litellm.proxy.db.token_auth import (
 from litellm.secret_managers.main import str_to_bool
 
 if TYPE_CHECKING:
+    from contextlib import AbstractContextManager
+
+    import psycopg
     from prisma import Prisma
     from prisma.types import HttpConfig
+
+
+class DatabaseConnect(Protocol):
+    def __call__(
+        self, conninfo: str, *, connect_timeout: int, autocommit: bool
+    ) -> "AbstractContextManager[psycopg.Connection[tuple[object, ...]]]": ...
+
 
 _ENVIRONMENT_VARIABLES_REVISION_MIGRATION: Final = "20261015120000_add_environment_variables_revision_trigger"
 
@@ -1024,6 +1034,49 @@ class PrismaManager:
             )
 
     @staticmethod
+    def raise_if_accounting_deliveries_unsettled(connect: "DatabaseConnect | None" = None) -> None:
+        """`prisma db push` drops LiteLLM_AccountingDelivery from litellm's own schema whatever
+        litellm-proxy-extras version is installed, so the push refuses while that table still holds
+        unsettled rows, and refuses when it cannot check."""
+        database_url: Final = os.environ.get("DATABASE_URL")
+        if not database_url:
+            return
+        import psycopg
+        from litellm_proxy_extras.utils import (
+            ProxyExtrasDBManager,  # pyright: ignore[reportUnknownVariableType]  # optional install
+        )
+        from psycopg import sql
+
+        schema_param: Final[object] = ProxyExtrasDBManager._prisma_schema_param(database_url)  # pyright: ignore[reportPrivateUsage, reportUnknownMemberType, reportUnknownVariableType]  # Prisma URL parsing shared with the published extras
+        conninfo_param: Final[object] = ProxyExtrasDBManager._strip_prisma_query_params(database_url)  # pyright: ignore[reportPrivateUsage, reportUnknownMemberType, reportUnknownVariableType]  # Prisma URL parsing shared with the published extras
+        schema: Final = schema_param if isinstance(schema_param, str) and schema_param else "public"
+        conninfo: Final = conninfo_param if isinstance(conninfo_param, str) else database_url
+        try:
+            with (connect or psycopg.connect)(conninfo, connect_timeout=10, autocommit=True) as connection:
+                table: Final = connection.execute(
+                    "SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace "
+                    "WHERE n.nspname=%s AND c.relname='LiteLLM_AccountingDelivery'",
+                    (schema,),
+                ).fetchone()
+                unsettled: Final = (
+                    table is not None
+                    and connection.execute(
+                        sql.SQL("SELECT 1 FROM {} WHERE state::text <> 'applied' LIMIT 1").format(
+                            sql.Identifier(schema, "LiteLLM_AccountingDelivery")
+                        )
+                    ).fetchone()
+                    is not None
+                )
+        except psycopg.Error as exc:
+            raise RuntimeError("Cannot verify LiteLLM_AccountingDelivery is settled; refusing prisma db push.") from exc
+        if unsettled:
+            raise RuntimeError(
+                "LiteLLM_AccountingDelivery has pending or parked rows from the experimental accounting_capture "
+                "setting. This upgrade would drop them. Drain them on the previous build with that setting still on "
+                "before upgrading."
+            )
+
+    @staticmethod
     def _raise_if_partitioned_spend_logs() -> None:
         """`prisma db push` rewrites a doc-partitioned LiteLLM_SpendLogs
         primary key back to ("request_id"), which Postgres rejects. Fail fast
@@ -1085,14 +1138,7 @@ class PrismaManager:
                     from litellm_proxy_extras.utils import ProxyExtrasDBManager
 
                     ProxyExtrasDBManager.raise_if_lens_rename_pending()
-                    if callable(
-                        unsettled := getattr(
-                            ProxyExtrasDBManager,  # pyright: ignore[reportUnknownArgumentType]  # optional install
-                            "raise_if_accounting_deliveries_unsettled",
-                            None,
-                        )
-                    ):
-                        unsettled()
+                    PrismaManager.raise_if_accounting_deliveries_unsettled()
                     PrismaManager._raise_if_partitioned_spend_logs()
                     run_prisma(
                         [
