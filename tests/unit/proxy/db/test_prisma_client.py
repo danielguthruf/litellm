@@ -314,6 +314,21 @@ def test_db_push_refuses_only_while_old_accounting_rows_are_unsettled(
         PrismaManager.raise_if_accounting_deliveries_unsettled(connect)
 
 
+def test_db_push_checks_old_accounting_rows_over_the_direct_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    from litellm.proxy.db.prisma_client import PrismaManager
+
+    monkeypatch.setenv("DATABASE_URL", "postgresql://u:p@pooler:6543/litellm")
+    monkeypatch.setenv("DIRECT_URL", "postgresql://u:p@primary:5432/litellm")
+    seen: Final[list[str]] = []
+
+    def connect(conninfo: str, *, connect_timeout: int, autocommit: bool) -> _Connection:
+        seen.append(conninfo)
+        return _Connection(table_exists=False, unsettled=False)
+
+    PrismaManager.raise_if_accounting_deliveries_unsettled(connect)
+    assert len(seen) == 1 and "primary" in seen[0]
+
+
 def test_db_push_refuses_when_it_cannot_check_old_accounting_rows(monkeypatch: pytest.MonkeyPatch) -> None:
     import psycopg
 

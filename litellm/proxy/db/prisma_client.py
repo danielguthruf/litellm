@@ -1038,7 +1038,7 @@ class PrismaManager:
         """`prisma db push` drops LiteLLM_AccountingDelivery from litellm's own schema whatever
         litellm-proxy-extras version is installed, so the push refuses while that table still holds
         unsettled rows, and refuses when it cannot check."""
-        database_url: Final = os.environ.get("DATABASE_URL")
+        database_url: Final = os.environ.get("DIRECT_URL") or os.environ.get("DATABASE_URL")
         if not database_url:
             return
         import psycopg

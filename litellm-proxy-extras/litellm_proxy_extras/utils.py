@@ -648,7 +648,7 @@ class ProxyExtrasDBManager:
         connect: LensCheckConnect | None,
         query: "Callable[[psycopg.Connection[tuple[object, ...]], str], bool]",
     ) -> bool:
-        database_url: Final = os.environ.get("DATABASE_URL")
+        database_url: Final = os.environ.get("DIRECT_URL") or os.environ.get("DATABASE_URL")
         if not database_url:
             return False
         try:
@@ -1570,8 +1570,10 @@ class ProxyExtrasDBManager:
         return thread
 
     @staticmethod
-    def _run_migrations(use_migrate: bool, use_v2_resolver: bool) -> bool:
-        ProxyExtrasDBManager.raise_if_accounting_deliveries_unsettled()
+    def _run_migrations(
+        use_migrate: bool, use_v2_resolver: bool, verify_settled: Callable[[], None] | None = None
+    ) -> bool:
+        (verify_settled or ProxyExtrasDBManager.raise_if_accounting_deliveries_unsettled)()
         if use_v2_resolver:
             logger.info("Using v2 migration resolver (--use_v2_migration_resolver)")
             return ProxyExtrasDBManager._setup_database_v2(use_migrate=use_migrate)

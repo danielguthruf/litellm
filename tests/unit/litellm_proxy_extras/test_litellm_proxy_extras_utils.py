@@ -1959,7 +1959,9 @@ class TestV1MigrationFailuresLogAtError:
         )
         monkeypatch.setattr(utils_module.time, "sleep", lambda seconds: None)
 
-        succeeded: Final = ProxyExtrasDBManager._run_migrations(use_migrate=True, use_v2_resolver=False)
+        succeeded: Final = ProxyExtrasDBManager._run_migrations(
+            use_migrate=True, use_v2_resolver=False, verify_settled=lambda: None
+        )
         return succeeded, calls, killed_pids
 
     @staticmethod
@@ -2376,6 +2378,21 @@ class TestMigrateDeployRunsUnderTheCoordinatorLock:
 
 
 class TestAccountingDeliveryUpgradeGuard:
+    def test_the_check_connects_over_the_direct_url(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        import psycopg
+
+        monkeypatch.setenv("DATABASE_URL", "postgresql://litellm:hunter2@pooler:6543/litellm")
+        monkeypatch.setenv("DIRECT_URL", "postgresql://litellm:hunter2@primary:5432/litellm")
+        seen: Final[list[str]] = []
+
+        def refuse(conninfo: str, *, connect_timeout: int, autocommit: bool) -> NoReturn:
+            seen.append(conninfo)
+            raise psycopg.OperationalError("connection refused")
+
+        with pytest.raises(RuntimeError, match="Cannot verify accounting deliveries"):
+            ProxyExtrasDBManager.raise_if_accounting_deliveries_unsettled(connect=refuse)
+        assert len(seen) == 1 and "primary" in seen[0]
+
     def test_migrate_mode_refuses_when_it_cannot_check_old_accounting_rows(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
