@@ -5,6 +5,7 @@ import hashlib
 import json
 import re
 import sqlite3
+import uuid
 from collections.abc import Mapping, Sequence
 from datetime import timezone
 from typing import Final, Literal
@@ -3868,10 +3869,11 @@ class TestSpendLogsPayload:
             }
             assert payload["accounting_log_disabled"] is False
             assert payload["accounting_payload"]["metadata"]["accounting_entities"]["end_user"] == "test_user_1"
+            assert uuid.UUID(hex=payload["accounting_delivery_id"]).hex == payload["accounting_delivery_id"]
             differences = _compare_nested_dicts(
                 payload,
                 expected_payload_with_pod_routing,
-                ignore_keys=[*ignored_keys, "accounting_payload", "accounting_log_disabled"],
+                ignore_keys=[*ignored_keys, "accounting_payload", "accounting_log_disabled", "accounting_delivery_id"],
             )
             if differences:
                 pytest.fail(f"Dictionary mismatch: {differences}")
