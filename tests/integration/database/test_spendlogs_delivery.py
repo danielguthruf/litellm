@@ -721,7 +721,17 @@ async def test_batch_is_charged_once_when_another_request_holds_its_spend_log_id
     batch = _with_payload(
         {**_row("planted_batch_cost"), "call_type": "aretrieve_batch", "status": "success", "spend": 1.0}
     )
-    client = SimpleNamespace(db=delivery_client, writer_db=delivery_client, jsonify_object=jsonify_object)
+    async def find_unique(where):
+        found = delivery_database.execute(
+            'SELECT call_type, status, spend FROM "LiteLLM_SpendLogs" WHERE request_id = %s', (where["request_id"],)
+        ).fetchone()
+        return None if found is None else SimpleNamespace(call_type=found[0], status=found[1], spend=found[2])
+
+    client = SimpleNamespace(
+        db=SimpleNamespace(litellm_spendlogs=SimpleNamespace(find_unique=find_unique)),
+        writer_db=delivery_client,
+        jsonify_object=jsonify_object,
+    )
     writer = DBSpendUpdateWriter()
 
     first = await writer._claim_batch_cost_spend_log(payload=batch, prisma_client=client, disable_spend_logs=False)

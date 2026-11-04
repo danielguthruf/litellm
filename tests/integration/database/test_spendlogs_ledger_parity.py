@@ -1037,22 +1037,22 @@ async def test_batch_request_id_collision_preserves_one_durable_charge(
         )
         if concurrent:
             charged = await asyncio.gather(_retrieve_batch(writer, 0.25), _retrieve_batch(writer, 0.25))
-            assert sorted(charged) == ([False, True] if disable_logs else [False, False])
+            assert sorted(charged) == [False, True]
         else:
-            assert await _retrieve_batch(writer, 0.25) is disable_logs
+            assert await _retrieve_batch(writer, 0.25) is True
         await writer.db_update_spend_transaction_handler(client, 0, proxy_server.proxy_logging_obj)
         totals = await client.writer_db.query_raw('SELECT spend FROM "LiteLLM_UserTable" WHERE user_id=$1', 'user')
-        assert totals[0]["spend"] == (0.25 if disable_logs else 0)
+        assert totals[0]["spend"] == 0.25
         assert await _retrieve_batch(writer, 0.25) is False
         await writer.db_update_spend_transaction_handler(client, 0, proxy_server.proxy_logging_obj)
         totals = await client.writer_db.query_raw('SELECT spend FROM "LiteLLM_UserTable" WHERE user_id=$1', 'user')
-        assert totals[0]["spend"] == (0.25 if disable_logs else 0)
+        assert totals[0]["spend"] == 0.25
         rows = await client.writer_db.query_raw(
             'SELECT call_type, status, api_key, spend FROM "LiteLLM_SpendLogs" WHERE request_id=$1', 'batch_batch_cost'
         )
         assert rows == [{"call_type": call_type, "status": status, "api_key": "other-key", "spend": 0.5}]
         deliveries = await client.writer_db.query_raw('SELECT state::text FROM "LiteLLM_SpendLogDelivery"')
-        assert deliveries == ([{"state": "applied"}] if disable_logs else [])
+        assert deliveries == [{"state": "applied"}]
     finally:
         await client.db.disconnect()
 
