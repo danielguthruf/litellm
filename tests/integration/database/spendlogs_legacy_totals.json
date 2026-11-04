@@ -57,7 +57,7 @@
       "LiteLLM_DailyAgentSpend": [
         {
           "agent_id": "agent",
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -83,7 +83,7 @@
       ],
       "LiteLLM_DailyEndUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -110,7 +110,7 @@
       ],
       "LiteLLM_DailyGuardrailUsageUnits": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "cost": 0.02,
           "date": "2026-11-02",
           "guardrail_id": "guard",
@@ -137,7 +137,7 @@
       ],
       "LiteLLM_DailyOrganizationSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -164,7 +164,7 @@
       ],
       "LiteLLM_DailyTagSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -191,7 +191,7 @@
       ],
       "LiteLLM_DailyTeamSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -219,7 +219,7 @@
       ],
       "LiteLLM_DailyUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -312,7 +312,7 @@
           "project_id": null,
           "spend": 0,
           "team_id": null,
-          "token": "key",
+          "token": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "total_spend": 0,
           "user_id": null
         }
@@ -327,7 +327,7 @@
       ],
       "LiteLLM_BudgetWindowSpend": [
         {
-          "entity_id": "key",
+          "entity_id": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "entity_type": "key",
           "spend": 0.25,
           "window_duration": "1d",
@@ -351,7 +351,7 @@
       "LiteLLM_DailyAgentSpend": [
         {
           "agent_id": "agent",
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -377,7 +377,7 @@
       ],
       "LiteLLM_DailyEndUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -404,7 +404,7 @@
       ],
       "LiteLLM_DailyGuardrailUsageUnits": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "cost": 0.02,
           "date": "2026-11-02",
           "guardrail_id": "guard",
@@ -431,7 +431,7 @@
       ],
       "LiteLLM_DailyOrganizationSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -458,7 +458,7 @@
       ],
       "LiteLLM_DailyTagSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -485,7 +485,7 @@
       ],
       "LiteLLM_DailyTeamSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -513,7 +513,7 @@
       ],
       "LiteLLM_DailyUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -606,7 +606,7 @@
           "project_id": null,
           "spend": 0.25,
           "team_id": null,
-          "token": "key",
+          "token": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "total_spend": 0.25,
           "user_id": null
         }
@@ -621,7 +621,7 @@
       ],
       "LiteLLM_BudgetWindowSpend": [
         {
-          "entity_id": "key",
+          "entity_id": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "entity_type": "key",
           "spend": 0.25,
           "window_duration": "1d",
@@ -645,7 +645,7 @@
       "LiteLLM_DailyAgentSpend": [
         {
           "agent_id": "agent",
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -671,7 +671,7 @@
       ],
       "LiteLLM_DailyEndUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -698,7 +698,7 @@
       ],
       "LiteLLM_DailyGuardrailUsageUnits": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "cost": 0.02,
           "date": "2026-11-02",
           "guardrail_id": "guard",
@@ -725,7 +725,7 @@
       ],
       "LiteLLM_DailyOrganizationSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -752,7 +752,7 @@
       ],
       "LiteLLM_DailyTagSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -779,7 +779,7 @@
       ],
       "LiteLLM_DailyTeamSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -807,7 +807,7 @@
       ],
       "LiteLLM_DailyUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -900,7 +900,7 @@
           "project_id": null,
           "spend": 5.25,
           "team_id": null,
-          "token": "key",
+          "token": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "total_spend": 0.25,
           "user_id": null
         }
@@ -915,7 +915,7 @@
       ],
       "LiteLLM_BudgetWindowSpend": [
         {
-          "entity_id": "key",
+          "entity_id": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "entity_type": "key",
           "spend": 0.25,
           "window_duration": "1d",
@@ -932,7 +932,7 @@
       "LiteLLM_DailyAgentSpend": [
         {
           "agent_id": "agent",
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 0,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -958,7 +958,7 @@
       ],
       "LiteLLM_DailyEndUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 0,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -985,7 +985,7 @@
       ],
       "LiteLLM_DailyGuardrailUsageUnits": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "cost": 0.02,
           "date": "2026-11-02",
           "guardrail_id": "guard",
@@ -1012,7 +1012,7 @@
       ],
       "LiteLLM_DailyOrganizationSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 0,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -1039,7 +1039,7 @@
       ],
       "LiteLLM_DailyTagSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 0,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -1066,7 +1066,7 @@
       ],
       "LiteLLM_DailyTeamSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 0,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -1094,7 +1094,7 @@
       ],
       "LiteLLM_DailyUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 0,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -1187,7 +1187,7 @@
           "project_id": null,
           "spend": 0.25,
           "team_id": null,
-          "token": "key",
+          "token": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "total_spend": 0.25,
           "user_id": null
         }
@@ -1202,7 +1202,7 @@
       ],
       "LiteLLM_BudgetWindowSpend": [
         {
-          "entity_id": "key",
+          "entity_id": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "entity_type": "key",
           "spend": 0.25,
           "window_duration": "1d",
@@ -1219,7 +1219,7 @@
       "LiteLLM_DailyAgentSpend": [
         {
           "agent_id": "agent",
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -1245,7 +1245,7 @@
       ],
       "LiteLLM_DailyEndUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -1272,7 +1272,7 @@
       ],
       "LiteLLM_DailyGuardrailUsageUnits": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "cost": 0.02,
           "date": "2026-11-02",
           "guardrail_id": "guard",
@@ -1299,7 +1299,7 @@
       ],
       "LiteLLM_DailyOrganizationSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -1326,7 +1326,7 @@
       ],
       "LiteLLM_DailyTagSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -1353,7 +1353,7 @@
       ],
       "LiteLLM_DailyTeamSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -1381,7 +1381,7 @@
       ],
       "LiteLLM_DailyUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -1474,7 +1474,7 @@
           "project_id": null,
           "spend": 0.25,
           "team_id": null,
-          "token": "key",
+          "token": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "total_spend": 0.25,
           "user_id": null
         }
@@ -1489,7 +1489,7 @@
       ],
       "LiteLLM_BudgetWindowSpend": [
         {
-          "entity_id": "key",
+          "entity_id": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "entity_type": "key",
           "spend": 0.25,
           "window_duration": "1d",
@@ -1513,7 +1513,7 @@
       "LiteLLM_DailyAgentSpend": [
         {
           "agent_id": "agent",
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -1539,7 +1539,7 @@
       ],
       "LiteLLM_DailyEndUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -1566,7 +1566,7 @@
       ],
       "LiteLLM_DailyGuardrailUsageUnits": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "cost": 0.02,
           "date": "2026-11-02",
           "guardrail_id": "guard",
@@ -1593,7 +1593,7 @@
       ],
       "LiteLLM_DailyOrganizationSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -1620,7 +1620,7 @@
       ],
       "LiteLLM_DailyTagSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -1647,7 +1647,7 @@
       ],
       "LiteLLM_DailyTeamSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -1675,7 +1675,7 @@
       ],
       "LiteLLM_DailyUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -1768,7 +1768,7 @@
           "project_id": null,
           "spend": 0.25,
           "team_id": null,
-          "token": "key",
+          "token": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "total_spend": 0.25,
           "user_id": null
         }
@@ -1783,7 +1783,7 @@
       ],
       "LiteLLM_BudgetWindowSpend": [
         {
-          "entity_id": "key",
+          "entity_id": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "entity_type": "key",
           "spend": 0.25,
           "window_duration": "1d",
@@ -1807,7 +1807,7 @@
       "LiteLLM_DailyAgentSpend": [
         {
           "agent_id": "agent",
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -1833,7 +1833,7 @@
       ],
       "LiteLLM_DailyEndUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -1860,7 +1860,7 @@
       ],
       "LiteLLM_DailyGuardrailUsageUnits": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "cost": 0.02,
           "date": "2026-11-02",
           "guardrail_id": "guard",
@@ -1888,7 +1888,7 @@
       "LiteLLM_DailyOrganizationSpend": [],
       "LiteLLM_DailyTagSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -1915,7 +1915,7 @@
       ],
       "LiteLLM_DailyTeamSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -1943,7 +1943,7 @@
       ],
       "LiteLLM_DailyUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -2036,7 +2036,7 @@
           "project_id": null,
           "spend": 0.25,
           "team_id": null,
-          "token": "key",
+          "token": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "total_spend": 0.25,
           "user_id": null
         }
@@ -2051,7 +2051,7 @@
       ],
       "LiteLLM_BudgetWindowSpend": [
         {
-          "entity_id": "key",
+          "entity_id": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "entity_type": "key",
           "spend": 0.25,
           "window_duration": "1d",
@@ -2075,7 +2075,7 @@
       "LiteLLM_DailyAgentSpend": [
         {
           "agent_id": "agent",
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -2101,7 +2101,7 @@
       ],
       "LiteLLM_DailyEndUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -2128,7 +2128,7 @@
       ],
       "LiteLLM_DailyGuardrailUsageUnits": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "cost": 0.02,
           "date": "2026-11-02",
           "guardrail_id": "guard",
@@ -2155,7 +2155,7 @@
       ],
       "LiteLLM_DailyOrganizationSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -2182,7 +2182,7 @@
       ],
       "LiteLLM_DailyTagSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -2209,7 +2209,7 @@
       ],
       "LiteLLM_DailyTeamSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -2237,7 +2237,7 @@
       ],
       "LiteLLM_DailyUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -2330,7 +2330,7 @@
           "project_id": null,
           "spend": 0.25,
           "team_id": null,
-          "token": "key",
+          "token": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "total_spend": 0.25,
           "user_id": null
         }
@@ -2345,7 +2345,7 @@
       ],
       "LiteLLM_BudgetWindowSpend": [
         {
-          "entity_id": "key",
+          "entity_id": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "entity_type": "key",
           "spend": 0.25,
           "window_duration": "1d",
@@ -2369,7 +2369,7 @@
       "LiteLLM_DailyAgentSpend": [
         {
           "agent_id": "agent",
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 0,
           "autorouter_savings_spend": 0,
           "cache_creation_input_tokens": 1,
@@ -2395,7 +2395,7 @@
       ],
       "LiteLLM_DailyEndUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 0,
           "autorouter_savings_spend": 0,
           "cache_creation_input_tokens": 1,
@@ -2422,7 +2422,7 @@
       ],
       "LiteLLM_DailyGuardrailUsageUnits": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "cost": 0.02,
           "date": "2026-11-02",
           "guardrail_id": "guard",
@@ -2435,7 +2435,7 @@
       "LiteLLM_DailyModelUsage": [],
       "LiteLLM_DailyOrganizationSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 0,
           "autorouter_savings_spend": 0,
           "cache_creation_input_tokens": 1,
@@ -2462,7 +2462,7 @@
       ],
       "LiteLLM_DailyTagSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 0,
           "autorouter_savings_spend": 0,
           "cache_creation_input_tokens": 1,
@@ -2489,7 +2489,7 @@
       ],
       "LiteLLM_DailyTeamSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 0,
           "autorouter_savings_spend": 0,
           "cache_creation_input_tokens": 1,
@@ -2517,7 +2517,7 @@
       ],
       "LiteLLM_DailyUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 0,
           "autorouter_savings_spend": 0,
           "cache_creation_input_tokens": 1,
@@ -2610,7 +2610,7 @@
           "project_id": null,
           "spend": 0.25,
           "team_id": null,
-          "token": "key",
+          "token": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "total_spend": 0.25,
           "user_id": null
         }
@@ -2625,7 +2625,7 @@
       ],
       "LiteLLM_BudgetWindowSpend": [
         {
-          "entity_id": "key",
+          "entity_id": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "entity_type": "key",
           "spend": 0.25,
           "window_duration": "1d",
@@ -2649,7 +2649,7 @@
       "LiteLLM_DailyAgentSpend": [
         {
           "agent_id": "agent",
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.325,
           "cache_creation_input_tokens": 1,
@@ -2675,7 +2675,7 @@
       ],
       "LiteLLM_DailyEndUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.325,
           "cache_creation_input_tokens": 1,
@@ -2702,7 +2702,7 @@
       ],
       "LiteLLM_DailyGuardrailUsageUnits": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "cost": 0.02,
           "date": "2026-11-02",
           "guardrail_id": "guard",
@@ -2729,7 +2729,7 @@
       ],
       "LiteLLM_DailyOrganizationSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.325,
           "cache_creation_input_tokens": 1,
@@ -2756,7 +2756,7 @@
       ],
       "LiteLLM_DailyTagSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.325,
           "cache_creation_input_tokens": 1,
@@ -2783,7 +2783,7 @@
       ],
       "LiteLLM_DailyTeamSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.325,
           "cache_creation_input_tokens": 1,
@@ -2811,7 +2811,7 @@
       ],
       "LiteLLM_DailyUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.325,
           "cache_creation_input_tokens": 1,
@@ -2904,7 +2904,7 @@
           "project_id": null,
           "spend": 0.25,
           "team_id": null,
-          "token": "key",
+          "token": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "total_spend": 0.25,
           "user_id": null
         }
@@ -2919,7 +2919,7 @@
       ],
       "LiteLLM_BudgetWindowSpend": [
         {
-          "entity_id": "key",
+          "entity_id": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "entity_type": "key",
           "spend": 0.25,
           "window_duration": "1d",
@@ -2943,7 +2943,7 @@
       "LiteLLM_DailyAgentSpend": [
         {
           "agent_id": "agent",
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -2969,7 +2969,7 @@
       ],
       "LiteLLM_DailyEndUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -2996,7 +2996,7 @@
       ],
       "LiteLLM_DailyGuardrailUsageUnits": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "cost": 0.02,
           "date": "2026-11-02",
           "guardrail_id": "guard",
@@ -3023,7 +3023,7 @@
       ],
       "LiteLLM_DailyOrganizationSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -3050,7 +3050,7 @@
       ],
       "LiteLLM_DailyTagSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -3077,7 +3077,7 @@
       ],
       "LiteLLM_DailyTeamSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -3105,7 +3105,7 @@
       ],
       "LiteLLM_DailyUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -3202,7 +3202,7 @@
           "project_id": null,
           "spend": 0.25,
           "team_id": null,
-          "token": "key",
+          "token": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "total_spend": 0.25,
           "user_id": null
         }
@@ -3217,7 +3217,7 @@
       ],
       "LiteLLM_BudgetWindowSpend": [
         {
-          "entity_id": "key",
+          "entity_id": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "entity_type": "key",
           "spend": 0.25,
           "window_duration": "1d",
@@ -3241,7 +3241,7 @@
       "LiteLLM_DailyAgentSpend": [
         {
           "agent_id": "agent",
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -3267,7 +3267,7 @@
       ],
       "LiteLLM_DailyEndUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -3294,7 +3294,7 @@
       ],
       "LiteLLM_DailyGuardrailUsageUnits": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "cost": 0.02,
           "date": "2026-11-02",
           "guardrail_id": "guard",
@@ -3321,7 +3321,7 @@
       ],
       "LiteLLM_DailyOrganizationSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -3348,7 +3348,7 @@
       ],
       "LiteLLM_DailyTagSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -3375,7 +3375,7 @@
       ],
       "LiteLLM_DailyTeamSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -3403,7 +3403,7 @@
       ],
       "LiteLLM_DailyUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -3496,7 +3496,7 @@
           "project_id": null,
           "spend": 5.25,
           "team_id": null,
-          "token": "key",
+          "token": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "total_spend": 0.25,
           "user_id": null
         }
@@ -3511,7 +3511,7 @@
       ],
       "LiteLLM_BudgetWindowSpend": [
         {
-          "entity_id": "key",
+          "entity_id": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "entity_type": "key",
           "spend": 0.25,
           "window_duration": "1d",
@@ -3535,7 +3535,7 @@
       "LiteLLM_DailyAgentSpend": [
         {
           "agent_id": "agent",
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -3561,7 +3561,7 @@
       ],
       "LiteLLM_DailyEndUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -3588,7 +3588,7 @@
       ],
       "LiteLLM_DailyGuardrailUsageUnits": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "cost": 0.02,
           "date": "2026-11-02",
           "guardrail_id": "guard",
@@ -3615,7 +3615,7 @@
       ],
       "LiteLLM_DailyOrganizationSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -3642,7 +3642,7 @@
       ],
       "LiteLLM_DailyTagSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -3669,7 +3669,7 @@
       ],
       "LiteLLM_DailyTeamSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -3697,7 +3697,7 @@
       ],
       "LiteLLM_DailyUserSpend": [
         {
-          "api_key": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+          "api_key": "c7ae0492a582c466b6d37d85d0a03d9c4cb0c24bdce285bc61a3cab3dff3c0f5",
           "api_requests": 1,
           "autorouter_savings_spend": 0.125,
           "cache_creation_input_tokens": 1,
@@ -3790,7 +3790,7 @@
           "project_id": null,
           "spend": 0.25,
           "team_id": null,
-          "token": "key",
+          "token": "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
           "total_spend": 0.25,
           "user_id": null
         }
