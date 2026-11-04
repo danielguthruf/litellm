@@ -516,7 +516,7 @@ async def test_disabled_log_deliveries_do_not_enable_guardrail_analytics():
     prisma.db.litellm_dailyguardrailusageunits.upsert.assert_not_awaited()
 
 
-async def _apply_accounting_usage(prisma, logs):
+async def _apply_accounting_usage(prisma: MagicMock, logs: list[dict[str, object]]) -> None:
     from litellm.accounting.delivery_projection import project_deliveries
     from litellm.repositories.accounting_delivery_repository import DeliveryProjection
     from litellm.proxy.guardrails.usage_tracking import UsageUnitKey, UsageUnitIncrement, upsert_usage_unit_row
