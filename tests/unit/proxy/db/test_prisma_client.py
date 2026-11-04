@@ -20,6 +20,7 @@ from litellm.proxy.db.prisma_client import (
     _TrackedPrismaEngine,
     should_update_prisma_schema,
 )
+from tests.unit.proxy.db.conftest import FakePrismaCli
 
 
 @pytest.fixture(autouse=True)
@@ -269,6 +270,35 @@ def test_db_push_proceeds_when_spend_logs_is_not_partitioned(monkeypatch, fake_p
     assert PrismaManager.setup_database(use_migrate=False) is True
 
     assert fake_prisma_cli.calls == [DB_PUSH_ARGV, ENVIRONMENT_VARIABLES_REVISION_TRIGGER_ARGV]
+
+
+def test_db_push_runs_with_a_proxy_extras_release_that_predates_the_unsettled_check(
+    monkeypatch: pytest.MonkeyPatch, fake_prisma_cli: FakePrismaCli, unset_database_url: None
+) -> None:
+    from litellm.proxy.db.prisma_client import PrismaManager
+    from litellm_proxy_extras.utils import ProxyExtrasDBManager
+
+    monkeypatch.setattr(ProxyExtrasDBManager, "spend_logs_is_partitioned", staticmethod(lambda: False))
+    monkeypatch.delattr(ProxyExtrasDBManager, "raise_if_accounting_deliveries_unsettled")
+
+    assert PrismaManager.setup_database(use_migrate=False) is True
+    assert fake_prisma_cli.calls == [DB_PUSH_ARGV, ENVIRONMENT_VARIABLES_REVISION_TRIGGER_ARGV]
+
+
+def test_db_push_stops_on_unsettled_accounting_rows(
+    monkeypatch: pytest.MonkeyPatch, fake_prisma_cli: FakePrismaCli, unset_database_url: None
+) -> None:
+    from litellm.proxy.db.prisma_client import PrismaManager
+    from litellm_proxy_extras.utils import ProxyExtrasDBManager
+
+    def refuse() -> None:
+        raise RuntimeError("unsettled")
+
+    monkeypatch.setattr(ProxyExtrasDBManager, "raise_if_accounting_deliveries_unsettled", staticmethod(refuse))
+
+    with pytest.raises(RuntimeError, match="unsettled"):
+        PrismaManager.setup_database(use_migrate=False)
+    assert fake_prisma_cli.calls == []
 
 
 def _entra_jwt(expires_in_seconds: int) -> str:
