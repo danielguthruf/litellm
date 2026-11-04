@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Final
 
 from pydantic import TypeAdapter
 
-from litellm.litellm_core_utils.safe_json_dumps import safe_dumps
+from litellm.litellm_core_utils.safe_json_dumps import safe_dumps, safe_json_structure
 from litellm.proxy._types import SpendLogsPayload
 from litellm.proxy.spend_tracking.compression_savings import extract_compression_saved_tokens
 from litellm.proxy.spend_tracking.savings import compute_savings_spend, marks_gateway_injection
@@ -120,18 +120,36 @@ def build_accounting_payload(
                     for key, value in payload.items()
                     if key in _ACCOUNTING_FIELDS
                 },
-                "metadata": {key: value for key, value in metadata.items() if key in ACCOUNTING_METADATA_FIELDS},
+                "metadata": {
+                    key: _accounting_metadata_field(key, value)
+                    for key, value in metadata.items()
+                    if key in ACCOUNTING_METADATA_FIELDS
+                },
             }
         )
     )
 
 
+_GUARDRAIL_METADATA_FIELDS: Final = frozenset({"guardrail_information", "standard_logging_guardrail_information"})
+_GUARDRAIL_ACCOUNTING_FIELDS: Final = frozenset(
+    {"guardrail_id", "guardrail_name", "guardrail_usage", "guardrail_cost_by_unit", "guardrail_cost_in_spend"}
+)
+
+
+def _accounting_guardrail_entries(value: object) -> object:
+    if not isinstance(value, list):
+        return value
+    return [_accounting_guardrail_entry(entry) for entry in value if isinstance(entry, Mapping)]
+
+
+def _accounting_guardrail_entry(entry: Mapping[object, object]) -> Mapping[str, object]:
+    return {key: item for key, item in entry.items() if isinstance(key, str) and key in _GUARDRAIL_ACCOUNTING_FIELDS}
+
+
+def _accounting_metadata_field(key: str, value: object) -> object:
+    return _accounting_guardrail_entries(value) if key in _GUARDRAIL_METADATA_FIELDS else value
+
+
 def _without_nul(value: object) -> object:
     """Postgres jsonb rejects NUL, and a rejected payload would lose the charge it carries."""
-    if isinstance(value, str):
-        return value.replace("\x00", "")
-    if isinstance(value, Mapping):
-        return {_without_nul(key): _without_nul(item) for key, item in value.items()}
-    if isinstance(value, (list, tuple)):
-        return [_without_nul(item) for item in value]
-    return value
+    return safe_json_structure(value, non_finite_as_null=True)
